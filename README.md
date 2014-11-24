@@ -3,6 +3,16 @@ Sorry for my lack of creativity in choosing a name.
 
 This poject contains a bluetooth eeg circuit based on openeeg dual channel sound card eeg project.
 
+GOAL
+------
+The goal is to do brain computer interface experments.I want to make a wireless headband that runs
+on a 9v battery. I will design the board with kicad using surface mount parts.I plan on using a
+computer numerical controller machine to cut 2 on sided boards and stick thenm together back to back.
+
+It might not work but that's the plan!
+
+
+
 It contains.
 
 
@@ -16,6 +26,17 @@ I started the project in C but it was more convenient to write the opencv portio
 
 
 
+FIRMWARE:
+
+The firmware is for a PIC microcontroller 16f1788.All the microcontroller does is first set up the hc-05,
+then wait for a request.When it receives  a request it begins sampling tha analog to digital converter
+and sending the samples to the hc-05. I chose th 16f1788 but the code should be easily modified to work
+with another PIC.
+
+
+SCHEMATIC:
+
+Still in development but based on [this dual channel fm frontend from openeeg](http://openeeg.sourceforge.net/doc/hw/sceeg/DualChannelFMUnit-Sheet1.jpg) 
 
 
 
@@ -23,5 +44,6 @@ I started the project in C but it was more convenient to write the opencv portio
 
 Disclaimer:
 
-This project is an EXPERIMENT. I make no claims that it actually does anything.It may be harmful to individuals or property.
+This project is an EXPERIMENT. I make no claims that it actually does anything.It may be harmful to 
+individuals or property.
 THIS DEVICE AND SOFTWARE MAY BE DANGEROUS. DO NOT BUILD IT.
