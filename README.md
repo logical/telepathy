@@ -7,7 +7,7 @@ GOAL
 ------
 The goal is to do brain computer interface experments.I want to make a wireless headband that runs
 on a 9v battery. I will design the board with kicad using surface mount parts.I plan on using a
-computer numerical controller machine to cut 2 on sided boards and stick thenm together back to back.
+computer numerical controller machine to cut 2 one sided boards and stick them together back to back.
 
 It might not work but that's the plan!
 
@@ -30,7 +30,7 @@ FIRMWARE:
 
 The firmware is for a PIC microcontroller 16f1788.All the microcontroller does is first set up the hc-05,
 then wait for a request.When it receives  a request it begins sampling tha analog to digital converter
-and sending the samples to the hc-05. I chose th 16f1788 but the code should be easily modified to work
+and sending the samples to the hc-05. I chose th 16f1788 but the code should be easy to modify to work
 with another PIC.
 
 
