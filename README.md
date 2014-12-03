@@ -30,11 +30,7 @@ FIRMWARE:
 
 The firmware is for a PIC microcontroller 16f1788.All the microcontroller does is first set up the hc-05,
 then wait for a request.When it receives  a request it begins sampling tha analog to digital converter
-<<<<<<< HEAD
-and sending the samples to the hc-05. I chose the 16f1788 but the code should be easily modified to work
-=======
 and sending the samples to the hc-05. I chose th 16f1788 but the code should be easy to modify to work
->>>>>>> 0feed986bd456cb1ba3546897776af1c89c68110
 with another PIC.
 
 
