@@ -54,7 +54,7 @@ CPATHS=	-pthread \
 
 CPPFILES=cvanalyze.cpp
 
-CPPFLAGS=-Wall -export-dynamic
+CPPFLAGS=-Wall 
 
 CPPLIBS=-lstdc++\
 	-lm\
@@ -82,7 +82,7 @@ CPPLIBS=-lstdc++\
 OFILES= eegdata.o eegdata_callbacks.o cvanalyze.o
 
 all:
-	$(CC) -c $(CFLAGS) $(CPPFILES) 
+	$(CC) -c $(CPPFLAGS) $(CPPFILES) 
 	$(CC) -c $(CFLAGS) $(CFILES) $(CPATHS)
 	$(CC) $(CFLAGS) $(OFILES) $(CLIBS) $(CPPLIBS) -o eegdata
 

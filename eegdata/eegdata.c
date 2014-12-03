@@ -34,12 +34,15 @@ GtkWidget* create_window (void)
 //	gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
 	video = GTK_WIDGET (gtk_builder_get_object (builder, "drawingarea1"));
 	signalview = GTK_WIDGET (gtk_builder_get_object (builder, "drawingarea2"));
-	devicechoice=GTK_WIDGET(gtk_builder_get_object (builder, "comboboxtext1"));
+	devicechoice=GTK_WIDGET(gtk_builder_get_object (builder, "radiobutton1"));
 	startbutton=GTK_WIDGET(gtk_builder_get_object( builder,"togglebutton1"));
 	chan1check=GTK_WIDGET(gtk_builder_get_object( builder,"checkbutton1"));
 	chan2check=GTK_WIDGET(gtk_builder_get_object( builder,"checkbutton2"));
-	timecheck=GTK_WIDGET(gtk_builder_get_object( builder,"checkbutton3"));
-	freqcheck=GTK_WIDGET(gtk_builder_get_object( builder,"checkbutton4"));
+	chan3check=GTK_WIDGET(gtk_builder_get_object( builder,"checkbutton3"));
+	chan4check=GTK_WIDGET(gtk_builder_get_object( builder,"checkbutton4"));
+	timecheck=GTK_WIDGET(gtk_builder_get_object( builder,"checkbutton5"));
+	freqcheck=GTK_WIDGET(gtk_builder_get_object( builder,"checkbutton6"));
+	rangespin=GTK_WIDGET(gtk_builder_get_object( builder,"spinbutton1"));
 
 	savedialog=GTK_WIDGET(gtk_builder_get_object( builder,"window2"));
 	for(unsigned int i=0;i<10;i++){ 
@@ -87,45 +90,36 @@ void microsleep(unsigned int us){
 
 
 
+void fakepackets(unsigned int length){
+  float freq1 = 10.0;
+  float freq2 = 25.0;
+  float freq3 = 40.0;
+  float freq4 = 55.0;
+  static float t=0;
+//shift everything down
 
-void pointer_shift(unsigned short **a)
-{
-  *(a+3)=*(a);
-  for (unsigned int i = 0; i < 3; i++) {
-      *(a+i) = *(a+i+1);
-   }
+  memmove(channel1,channel1+length,sizeof(unsigned short)*SAMPLES*4-length);
+  memmove(channel2,channel2+length,sizeof(unsigned short)*SAMPLES*4-length);
+  memmove(channel3,channel3+length,sizeof(unsigned short)*SAMPLES*4-length);
+  memmove(channel4,channel4+length,sizeof(unsigned short)*SAMPLES*4-length);
+  for(int i=(SAMPLES*4-length);i<(SAMPLES*4);i++,t++){
+    // sine wave
+      channel1[i]=(unsigned short)(sin(2. * M_PI * freq1 * t / SAMPLES)*ZEROSAMPLE+ZEROSAMPLE);
+      channel2[i]=(unsigned short)(sin(2. * M_PI * freq2 * t / SAMPLES)*10+ZEROSAMPLE);
+      channel3[i]=(unsigned short)(sin(2. * M_PI * freq3 * t / SAMPLES)*ZEROSAMPLE+ZEROSAMPLE);
+      channel4[i]=(unsigned short)(sin(2. * M_PI * freq4 * t / SAMPLES)*10+ZEROSAMPLE);
+      microsleep(100);
+    
+  }
+    
+    if(t>SAMPLES*4)t=0;
   
 }
 
-void fakepackets(void){
-  float freq1 = 5.0;
-  float freq2 = 40.0;
-    pointer_shift(channel1);
-    pointer_shift(channel2);
-    for(int i=0;i<SAMPLES;i++){
-    // sine wave
-      channel1[3][i]=(int)(sin(2. * M_PI * freq1 * i / SAMPLES)*ZEROSAMPLE+ZEROSAMPLE);
-      channel2[3][i]=(int)(sin(2. * M_PI * freq2 * i / SAMPLES)*10+ZEROSAMPLE);
-    }
-}
 
 
 
-unsigned char array_compare(unsigned short *x, unsigned short *y, unsigned short err)
-{
-    for (size_t i=0; i<SAMPLES; i++)
-        if (fabs(x[i] - y[i]) > err)
-            return FALSE;
-    return TRUE;
-}
-
-/*
- * 
- * some bits of code from stackoverflow.com discussion
- */
-
-
-void trace(cairo_t *cr,unsigned short data[SAMPLES],unsigned int w,unsigned int h){
+void trace(cairo_t *cr,unsigned short *data,unsigned int w,unsigned int h){
   float scale =(float)h/MAXSAMPLE;
   float resolution=(float)w/SAMPLES;
   float x2=resolution;
@@ -228,47 +222,50 @@ void createedf(void){
   
 }
 
-void writepackets(unsigned char *rxbuffer,unsigned int length){
+void writepackets(unsigned char *rxbuffer,int length){
 
-//this is how I get packets that are transmitted msb/lsb/msb/lsb
-pointer_shift(channel1);
-pointer_shift(channel2);
-for(int i=0,j=0;i<length;i++,j+=4){
-	channel1[3][i] = ((rxbuffer[j] & 0b00001111) << 8) |  rxbuffer[j+1];
-	channel2[3][i] = ((rxbuffer[j+2] & 0b00001111) << 8 ) | rxbuffer[j+3];
-//	if(!swrite(data, 1, file))perror("write failed:");
+//shift everything down
+
+  memmove(channel1,channel1+length,sizeof(unsigned short)*SAMPLES*4-length);
+  memmove(channel2,channel2+length,sizeof(unsigned short)*SAMPLES*4-length);
+  memmove(channel3,channel3+length,sizeof(unsigned short)*SAMPLES*4-length);
+  memmove(channel4,channel4+length,sizeof(unsigned short)*SAMPLES*4-length);
+  for(int i=SAMPLES*4-length,j=0;i<SAMPLES*4;i++,j+=8){
+	channel1[i] = ((rxbuffer[j] & 0b00001111) << 8) |  rxbuffer[j+1];
+	channel2[i] = ((rxbuffer[j+2] & 0b00001111) << 8 ) | rxbuffer[j+3];
+	channel3[i] = ((rxbuffer[j+4] & 0b00001111) << 8) |  rxbuffer[j+5];
+	channel4[i] = ((rxbuffer[j+6] & 0b00001111) << 8 ) | rxbuffer[j+7];
+	//	if(!swrite(data, 1, file))perror("write failed:");
     }
     
    
 }
 
+
+
 void getdata(void){
-  int		nLength;
-  unsigned char	inBuf[BUFFERSIZE];
-  unsigned char control[3];
-  char * selected=gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(devicechoice));
-  if(strcmp(selected,"simulated")==0){
-      fakepackets();
+  int		rxlength=0;
+  unsigned char	rxbuffer[64];
+  unsigned char control;
+  if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(devicechoice))){
+      fakepackets(8);
   }
-  else if(strcmp(selected,"bluetooth")==0){
-      control[0]=CHANNEL1;
-      control[1]=CHANNEL2;
-      control[2]=START;
-      write(port, control, 3);
-      tcdrain(port);
-//      microsleep(200);
-      nLength = receive(port, inBuf,sizeof(inBuf));
-      if(nLength)
-      {
-	    
-	    writepackets(inBuf,nLength);
+  else {
+      //first set the range
+      control=START;
+//each packet is 4 channels * 2 bytes * 8samples = 64 bytes
+	write(port, &control, 1);
+	tcdrain(port);
+	rxlength = receive(port, rxbuffer,64);
 	
-      }
+      //write 8 samples
+      if(rxlength)writepackets(rxbuffer,8);
+    
   }  
 }
 
 
-
+//one byte every 200usx4 is 1/1600us=833sa/s
 int receive(int port,unsigned char *rxbuffer,unsigned int length){
   #define TIMEOUT 20
   unsigned char buffer[length];
@@ -287,11 +284,11 @@ int receive(int port,unsigned char *rxbuffer,unsigned int length){
 	}
     }
     else {
-      microsleep(100);
+      microsleep(400);
       timeout--;
     }
   }
-  printf("Requested %d only received %d,flushing buffer.",length,chars);
+  printf("Requested %d only received %d,flushing buffer.\n",length,chars);
   tcflush(port,TCIFLUSH);
   tcflush(port,TCIFLUSH);
   return 0;
@@ -301,22 +298,19 @@ int receive(int port,unsigned char *rxbuffer,unsigned int length){
 void allocate_buffers(void){
 
   // allocate an "array of arrays" of int
-  channel1 = (unsigned short**)malloc( 4* sizeof(unsigned short*) ) ;
-  channel2 = (unsigned short**)malloc( 4* sizeof(unsigned short*) ) ;
+  channel1 = (unsigned short*)malloc( sizeof(unsigned short)*4*SAMPLES ) ;
+  channel2 = (unsigned short*)malloc( sizeof(unsigned short)*4*SAMPLES ) ;
+  channel3 = (unsigned short*)malloc( sizeof(unsigned short)*4*SAMPLES ) ;
+  channel4 = (unsigned short*)malloc( sizeof(unsigned short)*4*SAMPLES ) ;
   spectrum1 = (unsigned short*)malloc( SAMPLES*sizeof(unsigned short) ) ;
   spectrum2 = (unsigned short*)malloc( SAMPLES*sizeof(unsigned short) ) ;
+  spectrum3 = (unsigned short*)malloc( SAMPLES*sizeof(unsigned short) ) ;
+  spectrum4 = (unsigned short*)malloc( SAMPLES*sizeof(unsigned short) ) ;
+  memset(channel1,0,4*SAMPLES);
+  memset(channel2,0,4*SAMPLES);
+  memset(channel3,0,4*SAMPLES);
+  memset(channel4,0,4*SAMPLES);
 
-  // each entry in the array of arrays of int
-  // isn't allocated yet, so allocate it
-  for(unsigned int i = 0 ; i < 4 ; i++ )
-  {
-    // Allocate an array of int's, at each
-    // entry in the "array of arrays"
-    channel1[i] = (unsigned short*)malloc( SAMPLES*sizeof(unsigned short) ) ;
-    channel2[i] = (unsigned short*)malloc( SAMPLES*sizeof(unsigned short) ) ;
-  } 
-  
-  
   
 }
 
@@ -356,10 +350,16 @@ int main( int   argc,char *argv[]){
     for(unsigned int i=0;i<10;i++)getpatternimage(i);
     
     gtk_widget_show (window);
-    gtk_main ();
-
-    
-    
+//    gtk_main();
+    while(1){
+      gtk_main_iteration_do(FALSE);
+      if(controlbits.DATA){
+	    getdata();
+	    //compare_signals();
+	    gtk_widget_queue_draw(video);
+      }
+      if(controlbits.DONE)break;
+    }
     close(port);
     return 0;
 

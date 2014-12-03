@@ -18,9 +18,7 @@
 #include "eegdata.h"
 //#include "cvanalyze.h"
 
-
-
-
+/*
 static gint timeout (gpointer data)
 {
     getdata();
@@ -29,6 +27,8 @@ static gint timeout (gpointer data)
     if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(startbutton)))return TRUE;
     return FALSE;
 }
+*/
+
 
 void drawingarea2_draw_event_cb(GtkWidget *widget, gpointer gdata){
   
@@ -38,10 +38,10 @@ void drawingarea2_draw_event_cb(GtkWidget *widget, gpointer gdata){
   cairo_paint(cr);
 
   cairo_set_source_rgb (cr,0, 0, 1);
-  trace(cr,triggers[selectedrow].channel1[3],SCOPEWIDTH/2,SCOPEHEIGHT/2);
+  trace(cr,triggers[selectedrow].channel1,SCOPEWIDTH/2,SCOPEHEIGHT/2);
   cairo_stroke (cr);
   cairo_set_source_rgb (cr,1, 0, 0);
-  trace(cr,triggers[selectedrow].channel2[3],SCOPEWIDTH/2,SCOPEHEIGHT/2);
+  trace(cr,triggers[selectedrow].channel2,SCOPEWIDTH/2,SCOPEHEIGHT/2);
   cairo_stroke (cr);
   
   
@@ -57,7 +57,7 @@ void drawingarea1_draw_event_cb(GtkWidget *widget, gpointer gdata){
   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chan1check))){
     if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(timecheck))){
       cairo_set_source_rgb (cr,1, 0, 0);
-      trace(cr,channel1[3],SCOPEWIDTH,SCOPEHEIGHT);
+      trace(cr,channel1+(SAMPLES*3),SCOPEWIDTH,SCOPEHEIGHT);
       cairo_stroke (cr);
     }
     if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(freqcheck))){
@@ -70,7 +70,7 @@ void drawingarea1_draw_event_cb(GtkWidget *widget, gpointer gdata){
   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chan2check))){
     if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(timecheck))){
       cairo_set_source_rgb (cr,0, 0, 1);
-      trace(cr,channel2[3],SCOPEWIDTH,SCOPEHEIGHT);
+      trace(cr,channel2+(SAMPLES*3),SCOPEWIDTH,SCOPEHEIGHT);
       cairo_stroke (cr);
     }
     if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(freqcheck))){
@@ -80,41 +80,67 @@ void drawingarea1_draw_event_cb(GtkWidget *widget, gpointer gdata){
     }
     
   }
+  if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chan3check))){
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(timecheck))){
+      cairo_set_source_rgb (cr,0, 1, 0);
+      trace(cr,channel3+(SAMPLES*3),SCOPEWIDTH,SCOPEHEIGHT);
+      cairo_stroke (cr);
+    }
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(freqcheck))){
+      cairo_set_source_rgb (cr,.5, 1, .5);
+      trace(cr,spectrum3,SCOPEWIDTH,SCOPEHEIGHT);
+      cairo_stroke (cr);
+    }
+    
+  }
+  if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chan4check))){
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(timecheck))){
+      cairo_set_source_rgb (cr,1, 1, 0);
+      trace(cr,channel4+(SAMPLES*3),SCOPEWIDTH,SCOPEHEIGHT);
+      cairo_stroke (cr);
+    }
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(freqcheck))){
+      cairo_set_source_rgb (cr,1, 1, .5);
+      trace(cr,spectrum4,SCOPEWIDTH,SCOPEHEIGHT);
+      cairo_stroke (cr);
+    }
+    
+  }
   
   cairo_destroy (cr);
   printf("FRAME\n");
   
 }
-  
+
+
 void devicechanged(GtkWidget *widget, gpointer gdata){
-  char* selected=gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget));
-  printf("%s \n",selected);
-  if(strcmp(selected,"simulated")==0){
-      if(port!=-1){
-	close(port);
-      }
-  }
-  else if(strcmp(selected,"bluetooth")==0){
+//  this is the signal from the first radio button
+  if(!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))){
      if(port!=-1){close(port);}
       port = open(DEFAULT_COM, O_RDWR | O_NOCTTY |O_NONBLOCK);
       if (port == -1){
 	  perror("Opening COM port");
-	  gtk_combo_box_set_active_id((GtkComboBox*)widget,"1");
+	  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget),FALSE);
 	  return;
       }
       if (!SetupConnection(port, DEFAULT_BAUD)) {
 	  perror("SetupConnection");
-	  gtk_combo_box_set_active_id((GtkComboBox*)widget,"1");
+	  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget),FALSE);
 	  return;
       }
       
+  }
+  else{
+      if(port!=-1){
+	close(port);
+      }
   }
 }
 
 void start( GtkWidget *widget , gpointer data){
   
   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(startbutton))){
-    g_timeout_add(100,timeout,NULL);
+//    g_timeout_add(100,timeout,NULL);
     controlbits.DATA=1;
     gtk_button_set_label((GtkButton*)startbutton,"stop");
     }
@@ -170,12 +196,9 @@ void saveentry( GtkWidget *widget , gpointer data){
   if((strcmp(name,"")!=0) && (strcmp(action,"")!=0)){
     strcpy(triggers[index].name,name);
     strcpy(triggers[index].action,action);
-//long way to tell which entry is saved
-    for(unsigned int k=0;k<4;k++){
-      for(unsigned int l=0;l<SAMPLES;l++){
-	triggers[index].channel1[k][l]=channel1[k][l];
-	triggers[index].channel2[k][l]=channel2[k][l];
-      }
+    for(unsigned int k=0;k<4*SAMPLES;k++){
+      triggers[index].channel1[k]=channel1[k];
+      triggers[index].channel2[k]=channel2[k];
     }
   }
   selectedrow=index;
@@ -195,12 +218,12 @@ void deleteentry( GtkWidget *widget , gpointer data){
   strcpy(triggers[index].action,"");
   gtk_entry_set_text(GTK_ENTRY(savename[index]),"");
   gtk_entry_set_text(GTK_ENTRY(saveaction[index]),"");
-  //long way to tell which entry is saved
-  for(unsigned int k=0;k<4;k++){
-    for(unsigned int l=0;l<SAMPLES;l++){
-      triggers[index].channel1[k][l]=0;
-      triggers[index].channel2[k][l]=0;
-    }
+
+  for(unsigned int k=0;k<4*SAMPLES;k++){
+      triggers[index].channel1[k]=0;
+      triggers[index].channel2[k]=0;
+      triggers[index].channel3[k]=0;
+      triggers[index].channel4[k]=0;
   }
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(activebutton[index]),FALSE);
   triggers[index].active=0;
@@ -234,7 +257,7 @@ void close_save( GtkWidget *widget , gpointer data){
 void destroy (GtkWidget *widget, gpointer data)
 {
   gtk_main_quit ();
-  controlbits.DONE=0;  
+  controlbits.DONE=1;  
 }
 
 void test (GtkWidget *widget, gpointer data)

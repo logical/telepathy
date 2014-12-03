@@ -1,32 +1,24 @@
 /*
  * File:   hc-05.c
- * Author: wikitronic
+ * Author: logical
  *
  * Created on June 26, 2014, 6:53 AM
  */
 /*
 The byte format is:
  * 
- * MSB channel 1/LSB channel 1/MSB channel 2/LBS channel 2/
+ * MSB channel 1/LSB channel 1/MSB channel 2/LSB channel 2/MSB channel 3/LSB channel 3/MSB channel 4/LSB channel 4/
  * the control character are:
  * 
- * 1 for channel 1 on
- * 2 for channel 2 on
  * s sample 256 samples and send 512 bytes per channel
- * You have to turn on each channel before every sample
- * example 12s=sample 1 and 2
- * 1s =sample only 1
- * 2s =sample only 2
- *
  *
  * t to test transmitter by sending "hello\n"
  *
+ * R+ to increase ADC range and R- to decrease ADC range
  *
- * I started to change the format in order to mimick popular modeeg
- * but I decided to use a software program to do the conversion.
  *
  */
-
+//#include <stdlib.h>
 #include <string.h>
 #include <pic16f1788.h>
 
@@ -48,7 +40,7 @@ The byte format is:
 // CONFIG2
 #pragma config WRT = OFF        // Flash Memory Self-Write Protection (Write protection off)
 #pragma config VCAPEN = OFF     // Voltage Regulator Capacitor Enable bit (Vcap functionality is disabled on RA6.)
-#pragma config PLLEN = ON      // PLL Enable (4x PLL disabled)
+#pragma config PLLEN = OFF      // PLL Enable (4x PLL disabled)
 #pragma config STVREN = OFF     // Stack Overflow/Underflow Reset Enable (Stack Overflow or Underflow will not cause a Reset)
 #pragma config BORV = HI        // Brown-out Reset Voltage Selection (Brown-out Reset Voltage (Vbor), low trip point selected.)
 #pragma config LPBOR = OFF      // Low Power Brown-Out Reset Enable Bit (Low power brown-out is disabled)
@@ -65,32 +57,33 @@ The byte format is:
 #define RX_BIT	(1<<RX_PORT)
 
 
-#define BAUD_1382400 4
-#define BAUD_460800 3
+//#define BAUD_1382400 4
+//#define BAUD_460800 3
 #define BAUD_230400 2
 #define BAUD_38400 1
 
-#define TX_SIZE 256
+#define PACKET_SIZE 8
 
 
 struct{
     unsigned char size;
     unsigned char elems[64];
-    unsigned char flag;
+    unsigned flag :1;
 }rxbuffer;
 
-#define ADC_CHANNEL_1 0b00000
-#define ADC_CHANNEL_2 0b00001
+#define ADC_CHANNEL_1 0b00000//pin 2
+#define ADC_CHANNEL_2 0b00001//pin 3
+#define ADC_CHANNEL_3 0b01000//pin 23
+#define ADC_CHANNEL_4 0b01001//pin 24
 
 
-
-#define CHANNEL1 '1'
-#define CHANNEL2 '2'
 #define XON 0x11
 #define XOFF 0x13
 #define START 0x12
 #define STOP 0x14
 #define TESTMODE 0x07
+
+
 
 union{
     struct{
@@ -104,53 +97,28 @@ union{
     };
 
 }controlbits;
+
+
 unsigned char delay_count1;
-unsigned char delay_count2;
-//tc=      ?CHOLD*(RIC + RSS + RS)* ln(1/8191)
-//          -10e-12*(1e3+9e3+200)*ln (1/8191)
-// tacq=    2us + 1.62us + (( 50°C- 25°C )0.05us/°C)
-//          2e-6+9.19100709490591408099e-7+( (50-25) * (.05e-6) )
-void acqtime(void){
-/*
-Delay = 5e-06 seconds
-; Clock frequency = 32 MHz
 
-; Actual delay = 5e-06 seconds = 40 cycles
-; Error = 0 %
-*/
-
-//			;40 cycles
-asm("	movlw	0x0D");
-asm("	movwf	_delay_count1");
-asm("	Delay_0");
-asm("		decfsz	_delay_count1, f");
-asm("		goto	Delay_0");
-
-
-//			;4 cycles (including call)
-}
 
 void delay_100us(unsigned int count){
 /*
 ; Delay = 0.0001 seconds
-; Clock frequency = 32 MHz
+; Clock frequency = 8 MHz
 
-; Actual delay = 0.0001 seconds = 800 cycles
+; Actual delay = 0.0001 seconds = 200 cycles
+; Error = 0 %
 */
 //;798 cycles
-while(count--){
-    asm("	movlw	0x9f    ");
-    asm("	movwf	_delay_count1    ");
-    asm("	movlw	0x01    ");
-    asm("	movwf	_delay_count2    ");
-    asm("Delay_1    ");
-    asm("	decfsz	_delay_count1, f    ");
-    asm("	goto	$+2    ");
-    asm("	decfsz	_delay_count2, f    ");
-    asm("	goto	Delay_1    ");
-    //			;3 cycles
-}
-//;4 cycles (including call)
+    while(count--){
+        //			;196 cycles
+        asm("movlw	0x41");
+        asm("movwf	_delay_count1");
+        asm("Delay_1    ");
+        asm("decfsz	_delay_count1, f");
+        asm("goto	Delay_1");
+    }
 
 }
 
@@ -175,10 +143,6 @@ void interrupt isr(){
             controlbits.FLOW = 1;
         else if(rx==STOP)
             controlbits.DATA = 0;
-        else if(rx==CHANNEL1)
-            controlbits.CH1=1;
-        else if(rx==CHANNEL2)
-            controlbits.CH2=1;
         else if(rx==TESTMODE)
             controlbits.TEST=1;
         else {
@@ -196,50 +160,70 @@ void interrupt isr(){
 
 
 
-//transmission of 1 byte = (1/1333333)*9 = 6.75000168750042187511e-6
-//TAD of 1 byte =  15*1.6e-6 = 24e-6
-//1 sample every 34e-6 seconds =29e3 sa/s
-// 2 channels is 1 sample per channel every  68e-6 =15e3 sa/s
-//there is a long delay to keep the adc from going faster than the uart
+//this loop does not need to be optimized for speed
+//apparently 256 sa/s is a good sample rate for eeg
+//I'm going to try to go a little higher
+//because that just seems way too slow
 void senddata(void){
-    for(unsigned int i=0;i<TX_SIZE;i++){
-        if(controlbits.CH1){
+    for(unsigned int i=0;i<PACKET_SIZE;i++){
+
             ADCON0bits.CHS=ADC_CHANNEL_1;
-            acqtime();
-            acqtime();
+            delay_100us(2);
             if(i>0)TXREG=ADRESL;
             ADCON0bits.GO = 1; //Start conversion
-            while (ADCON0bits.GO);
+            delay_100us(2);
             TXREG=ADRESH;
-        }
 
-        if(controlbits.CH2){
             ADCON0bits.CHS=ADC_CHANNEL_2;
-            acqtime();
-            acqtime();
-            if(i>0 || controlbits.CH1)TXREG=ADRESL;
+            delay_100us(2);
+            TXREG=ADRESL;
             ADCON0bits.GO = 1; //Start conversion
-            while (ADCON0bits.GO);
+            delay_100us(2);
             TXREG=ADRESH;
-        }
+
+            ADCON0bits.CHS=ADC_CHANNEL_3;
+            delay_100us(2);
+            TXREG=ADRESL;
+            ADCON0bits.GO = 1; //Start conversion
+            delay_100us(2);
+            TXREG=ADRESH;
+
+            ADCON0bits.CHS=ADC_CHANNEL_4;
+            delay_100us(2);
+            TXREG=ADRESL;
+            ADCON0bits.GO = 1; //Start conversion
+            delay_100us(2);
+            TXREG=ADRESH;
+        
     }
     TXREG=ADRESL;
     while(!TXSTAbits.TRMT);
-
-    controlbits.CH1=0;
-    controlbits.CH2=0;
     controlbits.DATA=0;
 
 }
 
 void SetupADC(void){
-    TRISA = 0b11111111; // input
-    ANSELA = 0b00000011; //CH0, CH1 analog, rest digital
+// MINIMUM voltage for the ADC is 1.8v
+//after some tinkering I have found the best configuration for the ADC
+//is to set the FVR to 2v and attach it to ref+
+
+
+//4 channels should be enough.
+    TRISB = 0b00011000;
+    ANSELB = 0b00011000; //RB2=AN8 RB3=AN9
+
+    TRISA = 0b11100111;
+    ANSELA = 0b00011111; //RA1=AN1 RA2=AN2,RA4=DAC4 RA5=DAC2
+
+
+    FVRCONbits.FVREN=1;
+    FVRCONbits.ADFVR=0b10; //set to 2.048
+
     ADCON1bits.ADCS =0b111;
     ADCON1bits.ADFM = 1;//2's complement
     ADCON0bits.ADRMD = 0;
-    ADCON1bits.ADNREF = 0;
-    ADCON1bits.ADPREF = 0;
+    ADCON1bits.ADNREF = 0;//set to vss
+    ADCON1bits.ADPREF = 0b11;//set to FVR
     ADCON2bits.CHSN=0b1111;
     ADCON0bits.ADON = 1;
 
@@ -249,6 +233,7 @@ void SetupADC(void){
 
 void SetupUART(unsigned char speed){
     RCSTAbits.SPEN=0;
+/*
 //    1382400 does not have a match in termios
 //    the closest rate is 1500000
     if(speed==BAUD_1382400){//32e6/(4*(5+1))=1333333
@@ -261,13 +246,14 @@ void SetupUART(unsigned char speed){
         BAUDCTLbits.BRG16=1;
 	TXSTAbits.BRGH=1;
     }
-    else if(speed==BAUD_230400){//32e6/(4*(32+1))=242424
-        SPBRG=32;
+*/
+    if(speed==BAUD_230400){//8e6/(4*(8+1)) = 222222
+        SPBRG=8;
         BAUDCTLbits.BRG16=1;
 	TXSTAbits.BRGH=1;
     }
-    else if(speed==BAUD_38400){//32e6/(4*(210+1))=37914
-	SPBRG=210;
+    else if(speed==BAUD_38400){//8e6/(4*(51+1)) = 38461
+	SPBRG=51;
         BAUDCTLbits.BRG16=1;
 	TXSTAbits.BRGH=1;
     }
@@ -315,8 +301,8 @@ void setHC05uart(void){
     rxbuffer.size=0;
     rxbuffer.flag=0;
 
-    if(strcmp(response,"+UART:1382400,1,0\r\nOK\r\n")!=0){
-        TXstring("AT+UART=1382400,1,0\r\n");
+    if(strcmp(response,"+UART:230400,1,0\r\nOK\r\n")!=0){
+        TXstring("AT+UART=230400,1,0\r\n");
         ERROR_PIN=1;
         while(!rxbuffer.flag){}
         ERROR_PIN=0;
@@ -349,18 +335,20 @@ void test(){
     controlbits.TEST=0;
 }
 
+void processcommand(void){
+
+
+    rxbuffer.size=0;
+    rxbuffer.flag=0;
+
+}
 
 void main(void){
 
-     //set to 32mhz
-    OSCCONbits.SPLLEN=1;
+     //set to 8mhz
+//    OSCCONbits.SPLLEN=1;
     OSCCONbits.SCS=00;
-    OSCCONbits.IRCF=0b1111;
-
-    ANSELB = 0;
-    TRISB = 0xF0; //TRISB<7:0> = 11110000, PORTB<7:4> input, PORTB<3:0> output
-    PORTB = 0; //Clear default state of PORTB to 0
-
+    OSCCONbits.IRCF=0b1110;
 
     ANSELC = 0;
     TRISC = 0b10000000; // output
@@ -389,7 +377,7 @@ void main(void){
     delay_100us(10000);
 
 
-    SetupUART(BAUD_1382400);
+    SetupUART(BAUD_230400);
 
     delay_100us(100);
     controlbits.CH1=0;
@@ -397,6 +385,7 @@ void main(void){
     while(1){
         if(controlbits.DATA)senddata();
         if(controlbits.TEST)test();
+        if(rxbuffer.flag)processcommand();
     }
 
 

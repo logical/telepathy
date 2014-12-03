@@ -10,20 +10,18 @@
 
 #include "cvanalyze.h"
 
-#define TRIGGERVALUE 5
+#define TRIGGERVALUE 1
 
 using namespace std;
 using namespace cv;
 
-typedef Matx<float, 4, SAMPLES> Matxdata;
+typedef Matx<float, 1, SAMPLES*4> Matxdata;
 typedef Matx<float, 1, SAMPLES> Matxspect;
 
-Matxdata trigch1data[10];
-Matxdata trigch2data[10];
-Matxspect trigch1spect[10];
-Matxspect trigch2spect[10];
+vector<float> trigdata[4][10];
+vector<float> trigspect[4][10];
 
-void dodft(Matxdata in,Matxspect &out);
+void dodft(vector<float> in,vector<float> &out);
 double getPSNR ( const Mat& I1, const Mat& I2);
 Scalar getMSSIM( const Mat& I1, const Mat& I2);
 
@@ -32,41 +30,61 @@ Scalar getMSSIM( const Mat& I1, const Mat& I2);
 
 
 void getpatternimage(unsigned short index){
-
-  for(int i=0;i<4;i++){
-    for(int j=0;j<SAMPLES;j++){
-      trigch1data[index](i,j)=triggers[index].channel1[i][j];
-      trigch2data[index](i,j)=triggers[index].channel2[i][j];
-    }
+  trigdata[0][index].clear();
+  trigdata[1][index].clear();
+  trigdata[2][index].clear();
+  trigdata[3][index].clear();
+  
+  for(int i=0;i<SAMPLES*4;i++){
+      trigdata[0][index].push_back(triggers[index].channel1[i]);
+      trigdata[1][index].push_back(triggers[index].channel2[i]);
+      trigdata[2][index].push_back(triggers[index].channel3[i]);
+      trigdata[3][index].push_back(triggers[index].channel4[i]);
   } 
-  dodft(trigch1data[index],trigch1spect[index]); 
-  dodft(trigch2data[index],trigch2spect[index]); 
+
+  dodft(trigdata[0][index],trigspect[0][index]); 
+  dodft(trigdata[1][index],trigspect[1][index]); 
+  dodft(trigdata[2][index],trigspect[2][index]); 
+  dodft(trigdata[3][index],trigspect[3][index]); 
   
 }
 
-void dodft(Matxdata in,Matxspect &out){
+void dodft(vector<float> in,vector<float> &out){
   
 
-
+    Mat I=Mat(in);
 //     Mat padded;                            //expand input image to optimal size
-//    int m = getOptimalDFTSize( in.rows );
-//    int n = getOptimalDFTSize( in.cols ); // on the border add zero values
-//    copyMakeBorder(in, padded, 0, m - in.rows, 0, n - in.cols, BORDER_CONSTANT, Scalar::all(0));
-    Mat planes[] = {Mat_<float>(Mat(in)), Mat::zeros(Mat(in).size(), CV_32F)};
+//     int m = getOptimalDFTSize( I.rows );
+//     int n = getOptimalDFTSize( I.cols ); // on the border add zero values
+//     copyMakeBorder(I, padded, 0, m - I.rows, 0, n - I.cols, BORDER_CONSTANT, Scalar::all(0));
+
+    Mat planes[] = {Mat_<float>(I), Mat::zeros(I.size(), CV_32F)};
     Mat complexI;
     merge(planes, 2, complexI);         // Add to the expanded another plane with zeros
-    dft(complexI, complexI);            // this way the result may fit in the source matrix
-
+    dft(complexI, complexI,DFT_SCALE);            // this way the result may fit in the source matrix
+    
     // compute the magnitude and switch to logarithmic scale
     // => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
-    split(complexI, planes);                   // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
-    magnitude(planes[0], planes[1], planes[0]);// planes[0] = magnitude
-    Mat magI = planes[0];
+      split(complexI, planes);                   // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+      magnitude(planes[0], planes[1], planes[0]);// planes[0] = magnitude
+      Mat magI = planes[0];
 
-    resize(magI,magI,Size(4*magI.cols,4*magI.rows),4,4,INTER_LINEAR);
+      magI += Scalar::all(1);                    // switch to logarithmic scale
+      log(magI, magI);
+
+    // crop the spectrum, if it has an odd number of rows or columns
+//    magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
+
+
     
-    magI(Rect(8, 0, out.cols, out.rows)).copyTo(out);
-//    normalize(out, out, 0, 4096, NORM_L1);
+//    magI.col(0).copyTo(out);
+
+    
+      
+      Mat result(1,SAMPLES,CV_32F);
+      magI(Rect(0,0,1,SAMPLES)).copyTo(result);
+      normalize(result, result, 0, 4096, CV_MINMAX);
+      result(Rect(0,0,1,SAMPLES)).copyTo(out);
     
     
   
@@ -77,77 +95,54 @@ void compare_signals(void){
 //4 images per pattern one for each channel of the signal and the fft of the signal
 //THIS MIGHT CHANGE
 
-  Matxdata ch1data,ch2data;
-  Matxspect ch1spect,ch2spect;
+  vector<float> chdata[4];
+  vector<float> chspect[4];
 
- for(unsigned int i=0;i<4;i++){
-    for(unsigned int j=0;j<SAMPLES;j++){
-      ch1data(i,j)=channel1[i][j];
-      ch2data(i,j)=channel2[i][j];
-    }
+  for(unsigned int i=0;i<(SAMPLES*4);i++){
+    chdata[0].push_back(channel1[i]-ZEROSAMPLE);
+    chdata[1].push_back(channel2[i]-ZEROSAMPLE);
+    chdata[2].push_back(channel3[i]-ZEROSAMPLE);
+    chdata[3].push_back(channel4[i]-ZEROSAMPLE);
   }
-  dodft(ch1data,ch1spect);
-  dodft(ch2data,ch2spect);
-
-  for(unsigned int i=0;i<SAMPLES;i++){
-      spectrum1[i]=ch1spect(0,i);
-      spectrum2[i]=ch2spect(0,i);
-  }
+  
+  dodft(chdata[0],chspect[0]);
+  dodft(chdata[1],chspect[1]);
+  dodft(chdata[2],chspect[2]);
+  dodft(chdata[3],chspect[3]);
 
   
-/*  
-    int psnrTriggerValue;
-    cout << "PSNR trigger value " << setiosflags(ios::fixed) << setprecision(3)
-         << psnrTriggerValue << endl;
-*/
+    for(unsigned int i=0;i<SAMPLES;i++){
+	spectrum1[i]=chspect[0][i];
+	spectrum2[i]=chspect[1][i];
+	spectrum3[i]=chspect[2][i];
+	spectrum4[i]=chspect[3][i];
+    }
 
     double psnrV;
     Scalar mssimV;
 
-    for(unsigned int i=0;i<TRIGGERS;i++){ //Show the image captured in the window and repeat
-/*
-	  if (liveimages[j].empty() || patterns[i*4+j].empty())
-	  {
-	      cout << " < < <  Game over!  > > > ";
-	      break;
-	  }
-*/
+    for(unsigned int j=0;j<4;j++){
+	for(unsigned int i=0;i<TRIGGERS;i++){ //Show the image captured in the window and repeat
 
-	  ///////////////////////////////// PSNR ////////////////////////////////////////////////////
-	  psnrV = getPSNR(Mat(ch1data),Mat(trigch1data[i]));
+	  psnrV = getPSNR(Mat(chdata[j]),Mat(trigdata[j][i]));
 	  if(abs(psnrV) < TRIGGERVALUE ){
-	    cout <<triggers[i].name<< " Channel 1 data ";
+	    cout <<triggers[i].name<< " Channel "<<j<<" Trigger "<< i <<" data";
 	    cout << setiosflags(ios::fixed) << setprecision(3) << psnrV << "dB"<<endl;
-	    mssimV = getMSSIM(Mat(ch1data), Mat(trigch1data[i]));
+	    mssimV = getMSSIM(Mat(chdata[j]), Mat(trigdata[j][i]));
 	    cout << " MSSIM: " <<  setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "%"<<endl;
 	  }
-	  psnrV = getPSNR(Mat(ch2data),Mat(trigch2data[i]));
+	//spectrum
+	  psnrV = getPSNR(Mat(chspect[j]),Mat(trigspect[j][i]));
 	  if(abs(psnrV) < TRIGGERVALUE ){
-	    cout <<triggers[i].name<< " Channel 2 data ";
+	    cout <<triggers[i].name<< " Channel "<<j<<" Trigger "<< i << " spectrum ";
 	    cout << setiosflags(ios::fixed) << setprecision(3) << psnrV << "dB"<<endl;
-	    mssimV = getMSSIM(Mat(ch1data), Mat(trigch1data[i]));
+	    mssimV = getMSSIM(Mat(chspect[j]), Mat(trigspect[j][i]));
 	    cout << " MSSIM: " <<  setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "%"<<endl;
 	  }
-	  psnrV = getPSNR(Mat(ch1spect),Mat(trigch1spect[i]));
-	  if(abs(psnrV) < TRIGGERVALUE ){
-	    cout <<triggers[i].name<< " Channel 1 spectrum ";
-	    cout << setiosflags(ios::fixed) << setprecision(3) << psnrV << "dB"<<endl;
-	    mssimV = getMSSIM(Mat(ch1data), Mat(trigch1data[i]));
-	    cout << " MSSIM: " <<  setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "%"<<endl;
-	  }
-	  psnrV = getPSNR(Mat(ch2spect),Mat(trigch2spect[i]));
-	  if(abs(psnrV) < TRIGGERVALUE ){
-	    cout <<triggers[i].name<< " Channel 2 spectrum ";
-	    cout << setiosflags(ios::fixed) << setprecision(3) << psnrV << "dB"<<endl;
-	    mssimV = getMSSIM(Mat(ch1data), Mat(trigch1data[i]));
-	    cout << " MSSIM: " <<  setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "%"<<endl;
-	  }
-	  
-	  
-	  //////////////////////////////////// MSSIM /////////////////////////////////////////////////
-    
+	
+	}
 
-      }
+    }
   
   
   
