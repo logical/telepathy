@@ -1,15 +1,15 @@
-/*
- * File:   hc-05.c
+/* 
+ * File:   main.c
  * Author: logical
  *
- * Created on June 26, 2014, 6:53 AM
+ * Created on December 7, 2014, 10:37 AM
  */
 /*
-The byte format is:
- * 
+ *   The byte format is:
+ *
  * MSB channel 1/LSB channel 1/MSB channel 2/LSB channel 2/MSB channel 3/LSB channel 3/MSB channel 4/LSB channel 4/
  * the control character are:
- * 
+ *
  * s sample 256 samples and send 512 bytes per channel
  *
  * t to test transmitter by sending "hello\n"
@@ -23,7 +23,6 @@ The byte format is:
 #include <pic16f1788.h>
 
 #define NO_BIT_DEFINES
-
 
 // CONFIG1
 #pragma config FOSC = INTOSC    // Oscillator Selection (INTOSC oscillator: I/O function on CLKIN pin)
@@ -47,14 +46,25 @@ The byte format is:
 #pragma config LVP = OFF        // Low-Voltage Programming Enable (High-voltage on MCLR/VPP must be used for programming)
 
 
-/*pin defines*/
-#define CMD_PIN PORTCbits.RC1
-#define ERROR_PIN PORTCbits.RC2 //for error detection
 
-#define TX_PORT	6
-#define RX_PORT	7
-#define TX_BIT	(1<<TX_PORT)
-#define RX_BIT	(1<<RX_PORT)
+
+/*pin defines*/
+#define ERROR_PIN PORTCbits.RC1
+//these go to the adc
+#define ADC_CONV_PIN PORTCbits.RC2
+#define SCK_PIN PORTCbits.RC3
+#define SDI_PIN PORTCbits.RC4
+#define SDO_PIN PORTCbits.RC5
+
+//these got to the multiplexer
+#define MPX_A_PIN PORTBbits.RB0
+#define MPX_B_PIN PORTBbits.RB1
+
+//these go to the bluetooth
+#define CMD_PIN PORTCbits.RC0
+#define TX_PIN	PORTCbits.RC6
+#define RX_PIN	PORTCbits.RC7
+
 
 
 //#define BAUD_1382400 4
@@ -62,19 +72,14 @@ The byte format is:
 #define BAUD_230400 2
 #define BAUD_38400 1
 
-#define PACKET_SIZE 8
+#define PACKETSIZE 8
 
 
 struct{
     unsigned char size;
     unsigned char elems[64];
-    unsigned flag :1;
-}rxbuffer;
-
-#define ADC_CHANNEL_1 0b00000//pin 2
-#define ADC_CHANNEL_2 0b00001//pin 3
-#define ADC_CHANNEL_3 0b01000//pin 23
-#define ADC_CHANNEL_4 0b01001//pin 24
+    unsigned flag :1;//set when buffer is not empty
+}rxbuffer,txbuffer;
 
 
 #define XON 0x11
@@ -157,96 +162,115 @@ void interrupt isr(){
         PIR1bits.RCIF=0;
     }
 }
-
-
+#define INTERVAL 100
+void feedtransmitter(){
+ //   feed 8 bytes
+    unsigned int counter=0; //this will count the wait time to give an acurate delay
+    while(txbuffer.size>0){
+        TXREG = txbuffer.elems[--txbuffer.size];
+        while(!TXSTAbits.TRMT)counter++;
+    }
+    while(counter<INTERVAL)counter++;
+}
 
 //this loop does not need to be optimized for speed
 //apparently 256 sa/s is a good sample rate for eeg
 //I'm going to try to go a little higher
 //because that just seems way too slow
 void senddata(void){
-    for(unsigned int i=0;i<PACKET_SIZE;i++){
+    unsigned int count=0;
+    txbuffer.size=0;
+    while(controlbits.DATA){
 
-            ADCON0bits.CHS=ADC_CHANNEL_1;
-            delay_100us(2);
-            if(i>0)TXREG=ADRESL;
-            ADCON0bits.GO = 1; //Start conversion
-            delay_100us(2);
-            TXREG=ADRESH;
+            count=0;
+            MPX_A_PIN=0;                //set multiplexer channel
+            MPX_B_PIN=0;
+            ADC_CONV_PIN=1;             //start conversion
+            delay_100us(1);
+            ADC_CONV_PIN=0;             //end conversion start transmission
+            PIR1bits.SSP1IF=0;          // Clear SSP interrupt bit
+             SSPBUF = 0x00;              // Write dummy data byte to the buffer to initiate transmission
+            while(!SSPSTATbits.BF)count++;   //receive MSB first
+//            delay_100us(1);
+            txbuffer.elems[txbuffer.size++] =SSPBUF;
+            PIR1bits.SSP1IF=0;          // Clear SSP interrupt bit
+            SSPBUF = 0x00;              // Write dummy data byte to the buffer to initiate transmission
+            while(!SSPSTATbits.BF)count++;
+//            delay_100us(1);
+            txbuffer.elems[txbuffer.size++]=SSPBUF;
+            while(count<INTERVAL)count++;
 
-            ADCON0bits.CHS=ADC_CHANNEL_2;
-            delay_100us(2);
-            TXREG=ADRESL;
-            ADCON0bits.GO = 1; //Start conversion
-            delay_100us(2);
-            TXREG=ADRESH;
 
-            ADCON0bits.CHS=ADC_CHANNEL_3;
-            delay_100us(2);
-            TXREG=ADRESL;
-            ADCON0bits.GO = 1; //Start conversion
-            delay_100us(2);
-            TXREG=ADRESH;
+            count=0;
+            MPX_A_PIN=1;
+            MPX_B_PIN=0;
+            ADC_CONV_PIN=1;
+            delay_100us(1);
+            ADC_CONV_PIN=0;
+            PIR1bits.SSP1IF=0;          // Clear SSP interrupt bit
+            SSPBUF = 0x00;              // Write dummy data byte to the buffer to initiate transmission
+            while(!SSPSTATbits.BF)count++;
+//            delay_100us(1);
+            txbuffer.elems[txbuffer.size++]=SSPBUF;
+            PIR1bits.SSP1IF=0;          // Clear SSP interrupt bit
+            SSPBUF = 0x00;              // Write dummy data byte to the buffer to initiate transmission
+            while(!SSPSTATbits.BF)count++;
+//            delay_100us(1);
+            txbuffer.elems[txbuffer.size++]=SSPBUF;
+            while(count<INTERVAL)count++;
 
-            ADCON0bits.CHS=ADC_CHANNEL_4;
-            delay_100us(2);
-            TXREG=ADRESL;
-            ADCON0bits.GO = 1; //Start conversion
-            delay_100us(2);
-            TXREG=ADRESH;
-        
+            count=0;
+            MPX_A_PIN=0;
+            MPX_B_PIN=1;
+            ADC_CONV_PIN=1;
+            delay_100us(1);
+            ADC_CONV_PIN=0;
+            PIR1bits.SSP1IF=0;          // Clear SSP interrupt bit
+            SSPBUF = 0x00;              // Write dummy data byte to the buffer to initiate transmission
+            while(!SSPSTATbits.BF)count++;
+//            delay_100us(1);
+            txbuffer.elems[txbuffer.size++]=SSPBUF;
+            PIR1bits.SSP1IF=0;          // Clear SSP interrupt bit
+            SSPBUF = 0x00;              // Write dummy data byte to the buffer to initiate transmission
+            while(!SSPSTATbits.BF)count++;
+//            delay_100us(1);
+            txbuffer.elems[txbuffer.size++]=SSPBUF;
+            while(count<INTERVAL)count++;
+
+            count=0;
+            MPX_A_PIN=1;
+            MPX_B_PIN=1;
+            ADC_CONV_PIN=1;
+            delay_100us(1);
+            ADC_CONV_PIN=0;
+            PIR1bits.SSP1IF=0;          // Clear SSP interrupt bit
+            SSPBUF = 0x00;              // Write dummy data byte to the buffer to initiate transmission
+            while(!SSPSTATbits.BF)count++;
+//            delay_100us(1);
+            txbuffer.elems[txbuffer.size++]=SSPBUF;
+            PIR1bits.SSP1IF=0;          // Clear SSP interrupt bit
+            SSPBUF = 0x00;              // Write dummy data byte to the buffer to initiate transmission
+            while(!SSPSTATbits.BF)count++;
+//            delay_100us(1);
+            txbuffer.elems[txbuffer.size++]=SSPBUF;
+            while(count<INTERVAL)count++;
+
+            feedtransmitter();
+
     }
-    TXREG=ADRESL;
-    while(!TXSTAbits.TRMT);
-    controlbits.DATA=0;
-
 }
 
 void SetupADC(void){
-// MINIMUM voltage for the ADC is 1.8v
-//after some tinkering I have found the best configuration for the ADC
-//is to set the FVR to 2v and attach it to ref+
+//    this is the setup for the ltc1864 16 bit spi adc
+    SSPCON1bits.SSPM=0b0000; //spi clock FOSC/4
+    SSPCON1bits.SSPEN=1;
 
 
-//4 channels should be enough.
-    TRISB = 0b00011000;
-    ANSELB = 0b00011000; //RB2=AN8 RB3=AN9
 
-    TRISA = 0b11100111;
-    ANSELA = 0b00011111; //RA1=AN1 RA2=AN2,RA4=DAC4 RA5=DAC2
-
-
-    FVRCONbits.FVREN=1;
-    FVRCONbits.ADFVR=0b10; //set to 2.048
-
-    ADCON1bits.ADCS =0b111;
-    ADCON1bits.ADFM = 1;//2's complement
-    ADCON0bits.ADRMD = 0;
-    ADCON1bits.ADNREF = 0;//set to vss
-    ADCON1bits.ADPREF = 0b11;//set to FVR
-    ADCON2bits.CHSN=0b1111;
-    ADCON0bits.ADON = 1;
-
-//channel select for differential
-    //    ADCON2bits.CHSN=;
 }
 
 void SetupUART(unsigned char speed){
     RCSTAbits.SPEN=0;
-/*
-//    1382400 does not have a match in termios
-//    the closest rate is 1500000
-    if(speed==BAUD_1382400){//32e6/(4*(5+1))=1333333
-        SPBRG=5;
-        BAUDCTLbits.BRG16=1;
-	TXSTAbits.BRGH=1;
-    }
-    else if(speed==BAUD_460800){//32e6/(4*(17+1))=444444
-        SPBRG=17;
-        BAUDCTLbits.BRG16=1;
-	TXSTAbits.BRGH=1;
-    }
-*/
     if(speed==BAUD_230400){//8e6/(4*(8+1)) = 222222
         SPBRG=8;
         BAUDCTLbits.BRG16=1;
@@ -283,7 +307,7 @@ void TXstring(const char *stringtosend){
 
 
 
-void setHC05uart(void){
+void setHM10uart(void){
     SetupUART(BAUD_38400); //Initialize UART Module
     delay_100us(10);
     TXstring("AT+UART?\r\n");
@@ -346,12 +370,24 @@ void processcommand(void){
 void main(void){
 
      //set to 8mhz
-//    OSCCONbits.SPLLEN=1;
+//    OSCCONbits.SPLLEN=1;//16mhz
     OSCCONbits.SCS=00;
     OSCCONbits.IRCF=0b1110;
 
-    ANSELC = 0;
-    TRISC = 0b10000000; // output
+//set all pins to digital outputs
+    ANSELA = 0b00000000;
+    ANSELB = 0b00000000;
+    ANSELC = 0b00000000;
+    TRISA = 0b00000000; // output
+    TRISB = 0b00000000; // output
+    TRISC = 0b10010000; // output except for RX ,SDI and SCK
+    PORTA=0b00000000;
+    PORTB=0b00000000;
+    PORTC=0b00000000;
+
+//cmd pin is used for hc-05 only
+// hm-10 is in setup mode until it connects
+
     CMD_PIN=1;
 
     SetupADC(); //Initialize ADC Module
@@ -370,7 +406,7 @@ void main(void){
     rxbuffer.flag=0;
     //startup time
     delay_100us(50000);
-    setHC05uart();
+    setHM10uart();
     //pullup resistor  on CMD_PIN will keep module in command mode until ready
     CMD_PIN=0;
     resetHC05();
