@@ -11,42 +11,41 @@
 extern "C" {
 #endif
 
-
 #define FRAMEDELAY 50
-#define BUFFERSIZE (SAMPLES*2)
-#define MAXFREQUENCY (SAMPLES/4)
-#define DEFAULT_COM	"/dev/rfcomm0"
-#define SAVE_FILE "./eegdatasettings"
-#define DEFAULT_BAUD	B230400 
-#define SAMPLERATE 512
-#define DEFAULT_FILE    "telepathy-eeg.dat"
+//#define BUFFERSIZE (SAMPLESIZE*2)
+#define DEFAULT_FILE    "./telepathy-eeg.dat"
+#define RXTXPROCESS     "./eegdatarxtx"
+#define FIFONAME	"./eegdatafifo"
+#define SAVE_FILE	"./eegdatasettings"
+       
 
-
-#define START 0x12
-#define STOP 0x14
-#define TEST 0x07;
-#define XON 0x11
-#define XOFF 0x13
   
 #define UI_FILE "ui3.ui"
 #define SCOPEWIDTH 640
 #define SCOPEHEIGHT 480
+#define YSCALE ((float)SCOPEHEIGHT/(float)MAXSAMPLE)
+#define XSCALE (SCOPEWIDTH/(SAMPLESIZE/2))
 
-
+  
+  
+int rxpid;  
+FILE* rxdaemon;
+char mode[8];
+  
 
 GtkWidget *video,*signalview,*chan1check,*chan2check,*chan3check,*chan4check,*timecheck,*freqcheck,*savedialog,*startbutton,*devicechoice,*rangespin;
 GtkWidget *savename[TRIGGERS],*saveaction[TRIGGERS],*savebutton[TRIGGERS],*deletebutton[TRIGGERS],*activebutton[TRIGGERS];
 GdkPixbuf *grid;
 
 
-int port;
 
 
 double volts,trig,chron;
 unsigned short selectedrow;
 unsigned char RequestedRange;
 
-cairo_surface_t* background;
+cairo_surface_t *background,*scope;
+
 union{
     struct{
     unsigned DONE   :1;  
@@ -67,8 +66,7 @@ void destroy (GtkWidget *widget, gpointer data);
 
 void microsleep(unsigned int us);
 void pointer_shift(unsigned short **a);
-void trace(cairo_t *cr,unsigned short *data,unsigned int w,unsigned int h);
-
+void trace(cairo_t* sc,unsigned short *data);
 int SetupConnection(int port, int baudRate);
 int receive(int port,unsigned char *rxbuffer,unsigned int length);
 void fakepackets(unsigned int length);
@@ -76,7 +74,7 @@ void read_settings_file(void);
 void save_settings_file(void);
 void getdata(void);
 int setrange(int range);
-
+void writepackets(unsigned short *rxbuffer);
 
 
 #ifdef __cplusplus

@@ -4,11 +4,12 @@
 #include<opencv2/highgui/highgui.hpp>
 
 #define TRIGGERS 10
-#define SAMPLES 256
+#define SAMPLESIZE 640
 #define CHANNELS 4
-#define MAXSAMPLE 4096
+#define MAXSAMPLE 65535 //16 bits
 #define ZEROSAMPLE (MAXSAMPLE/2)
-
+#define PACKETBYTES 128 //packet is 8bytes
+#define PACKETSIZE 32 
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,10 +19,10 @@ unsigned short *spectrum1,*spectrum2,*spectrum3,*spectrum4;//just for drawing
 typedef struct{
   unsigned char active;
   char name[16],action[16];
-  unsigned short channel1[4*SAMPLES];
-  unsigned short channel2[4*SAMPLES];
-  unsigned short channel3[4*SAMPLES];
-  unsigned short channel4[4*SAMPLES];
+  unsigned short channel1[SAMPLESIZE];
+  unsigned short channel2[SAMPLESIZE];
+  unsigned short channel3[SAMPLESIZE];
+  unsigned short channel4[SAMPLESIZE];
 } TRIGGER;
 
 TRIGGER	triggers[TRIGGERS];

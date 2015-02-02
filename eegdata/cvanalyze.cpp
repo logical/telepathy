@@ -15,8 +15,8 @@
 using namespace std;
 using namespace cv;
 
-typedef Matx<float, 1, SAMPLES*4> Matxdata;
-typedef Matx<float, 1, SAMPLES> Matxspect;
+typedef Matx<float, 1, SAMPLESIZE> Matxdata;
+typedef Matx<float, 1, SAMPLESIZE/4> Matxspect;
 
 vector<float> trigdata[4][10];
 vector<float> trigspect[4][10];
@@ -35,7 +35,7 @@ void getpatternimage(unsigned short index){
   trigdata[2][index].clear();
   trigdata[3][index].clear();
   
-  for(int i=0;i<SAMPLES*4;i++){
+  for(int i=0;i<SAMPLESIZE;i++){
       trigdata[0][index].push_back(triggers[index].channel1[i]);
       trigdata[1][index].push_back(triggers[index].channel2[i]);
       trigdata[2][index].push_back(triggers[index].channel3[i]);
@@ -50,7 +50,7 @@ void getpatternimage(unsigned short index){
 }
 
 void dodft(vector<float> in,vector<float> &out){
-  
+    int samples=SAMPLESIZE/4;
 
     Mat I=Mat(in);
 //     Mat padded;                            //expand input image to optimal size
@@ -81,10 +81,10 @@ void dodft(vector<float> in,vector<float> &out){
 
     
       
-      Mat result(1,SAMPLES,CV_32F);
-      magI(Rect(0,0,1,SAMPLES)).copyTo(result);
-      normalize(result, result, 0, 4096, CV_MINMAX);
-      result(Rect(0,0,1,SAMPLES)).copyTo(out);
+      Mat result(1,samples,CV_32F);
+      magI(Rect(0,0,1,samples)).copyTo(result);
+      normalize(result, result, 0, MAXSAMPLE, CV_MINMAX);
+      result(Rect(0,0,1,samples)).copyTo(out);
     
     
   
@@ -98,7 +98,7 @@ void compare_signals(void){
   vector<float> chdata[4];
   vector<float> chspect[4];
 
-  for(unsigned int i=0;i<(SAMPLES*4);i++){
+  for(unsigned int i=0;i<SAMPLESIZE;i++){
     chdata[0].push_back(channel1[i]-ZEROSAMPLE);
     chdata[1].push_back(channel2[i]-ZEROSAMPLE);
     chdata[2].push_back(channel3[i]-ZEROSAMPLE);
@@ -111,7 +111,7 @@ void compare_signals(void){
   dodft(chdata[3],chspect[3]);
 
   
-    for(unsigned int i=0;i<SAMPLES;i++){
+    for(unsigned int i=0;i<SAMPLESIZE/4;i++){
 	spectrum1[i]=chspect[0][i];
 	spectrum2[i]=chspect[1][i];
 	spectrum3[i]=chspect[2][i];

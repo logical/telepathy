@@ -82,10 +82,12 @@ CPPLIBS=-lstdc++\
 OFILES= eegdata.o eegdata_callbacks.o cvanalyze.o
 
 all:
+
 	$(CC) -c $(CPPFLAGS) $(CPPFILES) 
 	$(CC) -c $(CFLAGS) $(CFILES) $(CPATHS)
 	$(CC) $(CFLAGS) $(OFILES) $(CLIBS) $(CPPLIBS) -o eegdata
+	$(CC) eegdatarxtx.c -lm -o eegdatarxtx 
 
 clean: 
-	rm -f *.o eegdata
+	rm -f *.o eegdata eegdatarxtx
 
