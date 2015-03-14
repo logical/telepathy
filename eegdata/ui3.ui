@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
 <interface>
-  <requires lib="gtk+" version="3.0"/>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkAdjustment" id="adjustment1">
+    <property name="upper">255</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
     <signal name="destroy" handler="destroy" swapped="no"/>
@@ -18,13 +22,14 @@
             <child>
               <object class="GtkRadioButton" id="radiobutton1">
                 <property name="label" translatable="yes">simulation</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="xalign">0.039999999105930328</property>
                 <property name="active">True</property>
                 <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="devicechanged" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -35,9 +40,11 @@
             <child>
               <object class="GtkRadioButton" id="radiobutton2">
                 <property name="label" translatable="yes">/dev/rfcomm0</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="xalign">0</property>
                 <property name="active">True</property>
                 <property name="draw_indicator">True</property>
@@ -52,9 +59,11 @@
             <child>
               <object class="GtkToggleButton" id="togglebutton1">
                 <property name="label" translatable="yes">start</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="toggled" handler="start" swapped="no"/>
               </object>
               <packing>
@@ -66,9 +75,11 @@
             <child>
               <object class="GtkButton" id="button1">
                 <property name="label" translatable="yes">test</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="test" swapped="no"/>
               </object>
               <packing>
@@ -80,9 +91,11 @@
             <child>
               <object class="GtkButton" id="button2">
                 <property name="label" translatable="yes">save</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="open_save_patterns" swapped="no"/>
               </object>
               <packing>
@@ -94,9 +107,11 @@
             <child>
               <object class="GtkButton" id="button3">
                 <property name="label" translatable="yes">exit</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="destroy" swapped="no"/>
               </object>
               <packing>
@@ -106,13 +121,10 @@
               </packing>
             </child>
             <child>
-              <object class="GtkCheckButton" id="checkbutton1">
-                <property name="label" translatable="yes">channel 1</property>
+              <object class="GtkLabel" id="label6">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="xalign">0</property>
-                <property name="draw_indicator">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Gain</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -121,13 +133,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkCheckButton" id="checkbutton2">
-                <property name="label" translatable="yes">channel 2</property>
+              <object class="GtkSpinButton" id="spinbutton1">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="xalign">0</property>
-                <property name="draw_indicator">True</property>
+                <property name="invisible_char">●</property>
+                <property name="adjustment">adjustment1</property>
+                <property name="climb_rate">1</property>
+                <signal name="value-changed" handler="spinbutton1_value_changed_cb" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -136,11 +148,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkCheckButton" id="checkbutton3">
-                <property name="label" translatable="yes">channel 3</property>
+              <object class="GtkCheckButton" id="checkbutton1">
+                <property name="label" translatable="yes">channel 1</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
               </object>
@@ -151,11 +165,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkCheckButton" id="checkbutton4">
-                <property name="label" translatable="yes">channel 4</property>
+              <object class="GtkCheckButton" id="checkbutton2">
+                <property name="label" translatable="yes">channel 2</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
               </object>
@@ -166,13 +182,14 @@
               </packing>
             </child>
             <child>
-              <object class="GtkRadioButton" id="radiobutton3">
-                <property name="label" translatable="yes">time</property>
+              <object class="GtkCheckButton" id="checkbutton3">
+                <property name="label" translatable="yes">channel 3</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="xalign">0</property>
-                <property name="active">True</property>
                 <property name="draw_indicator">True</property>
               </object>
               <packing>
@@ -182,20 +199,56 @@
               </packing>
             </child>
             <child>
-              <object class="GtkRadioButton" id="radiobutton4">
-                <property name="label" translatable="yes">frequency</property>
+              <object class="GtkCheckButton" id="checkbutton4">
+                <property name="label" translatable="yes">channel 4</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
-                <property name="xalign">0.039999999105930328</property>
+                <property name="use_action_appearance">False</property>
+                <property name="xalign">0</property>
+                <property name="draw_indicator">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">11</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkRadioButton" id="radiobutton3">
+                <property name="label" translatable="yes">time</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
+                <property name="xalign">0</property>
                 <property name="active">True</property>
+                <property name="draw_indicator">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">12</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkRadioButton" id="radiobutton4">
+                <property name="label" translatable="yes">frequency</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
+                <property name="xalign">0.039999999105930328</property>
                 <property name="draw_indicator">True</property>
                 <property name="group">radiobutton3</property>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">11</property>
+                <property name="position">13</property>
               </packing>
             </child>
           </object>
@@ -242,6 +295,8 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -253,6 +308,8 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -264,6 +321,8 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -275,6 +334,8 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">2</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -286,6 +347,8 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">3</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -297,6 +360,8 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">4</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -308,6 +373,8 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">5</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -319,6 +386,8 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">6</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -330,6 +399,8 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">7</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -341,6 +412,8 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">8</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -352,6 +425,8 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">9</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -363,6 +438,8 @@
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">10</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -373,6 +450,8 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -383,6 +462,8 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">2</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -393,6 +474,8 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">3</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -403,6 +486,8 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">4</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -413,6 +498,8 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">5</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -423,6 +510,8 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">6</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -433,6 +522,8 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">7</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -443,6 +534,8 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">8</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -453,6 +546,8 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">9</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -463,144 +558,188 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">10</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="deletebutton1">
                 <property name="label" translatable="yes">x</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="deleteentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="deletebutton2">
                 <property name="label" translatable="yes">x</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="deleteentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">2</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="deletebutton3">
                 <property name="label" translatable="yes">x</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="deleteentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">3</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="deletebutton4">
                 <property name="label" translatable="yes">x</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="deleteentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">4</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="deletebutton5">
                 <property name="label" translatable="yes">x</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="deleteentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">5</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="deletebutton6">
                 <property name="label" translatable="yes">x</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="deleteentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">6</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="deletebutton7">
                 <property name="label" translatable="yes">x</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="deleteentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">7</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="deletebutton8">
                 <property name="label" translatable="yes">x</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="deleteentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">8</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="deletebutton9">
                 <property name="label" translatable="yes">x</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="deleteentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">9</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="deletebutton10">
                 <property name="label" translatable="yes">x</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="deleteentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">10</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="savebutton1">
                 <property name="label" translatable="yes">+</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <property name="xalign">0.49000000953674316</property>
                 <property name="yalign">0.47999998927116394</property>
                 <signal name="clicked" handler="saveentry" swapped="no"/>
@@ -608,124 +747,162 @@
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="savebutton2">
                 <property name="label" translatable="yes">+</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="saveentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">2</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="savebutton3">
                 <property name="label" translatable="yes">+</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="saveentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">3</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="savebutton4">
                 <property name="label" translatable="yes">+</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="saveentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">4</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="savebutton5">
                 <property name="label" translatable="yes">+</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="saveentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">5</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="savebutton6">
                 <property name="label" translatable="yes">+</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="saveentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">6</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="savebutton7">
                 <property name="label" translatable="yes">+</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="saveentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">7</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="savebutton8">
                 <property name="label" translatable="yes">+</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="saveentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">8</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="savebutton9">
                 <property name="label" translatable="yes">+</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="saveentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">9</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="savebutton10">
                 <property name="label" translatable="yes">+</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <property name="yalign">0.61000001430511475</property>
                 <signal name="clicked" handler="saveentry" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">10</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -737,6 +914,8 @@
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -748,13 +927,17 @@
               <packing>
                 <property name="left_attach">3</property>
                 <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="activecheckbutton1">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
@@ -763,13 +946,17 @@
               <packing>
                 <property name="left_attach">4</property>
                 <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="activecheckbutton2">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
@@ -778,13 +965,17 @@
               <packing>
                 <property name="left_attach">4</property>
                 <property name="top_attach">2</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="activecheckbutton3">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
@@ -793,13 +984,17 @@
               <packing>
                 <property name="left_attach">4</property>
                 <property name="top_attach">3</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="activecheckbutton4">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
@@ -808,13 +1003,17 @@
               <packing>
                 <property name="left_attach">4</property>
                 <property name="top_attach">4</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="activecheckbutton5">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
@@ -823,13 +1022,17 @@
               <packing>
                 <property name="left_attach">4</property>
                 <property name="top_attach">5</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="activecheckbutton6">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
@@ -838,13 +1041,17 @@
               <packing>
                 <property name="left_attach">4</property>
                 <property name="top_attach">6</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="activecheckbutton7">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
@@ -853,13 +1060,17 @@
               <packing>
                 <property name="left_attach">4</property>
                 <property name="top_attach">7</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="activecheckbutton8">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
@@ -868,13 +1079,17 @@
               <packing>
                 <property name="left_attach">4</property>
                 <property name="top_attach">8</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="activecheckbutton9">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
@@ -883,13 +1098,17 @@
               <packing>
                 <property name="left_attach">4</property>
                 <property name="top_attach">9</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkCheckButton" id="activecheckbutton10">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
@@ -898,6 +1117,8 @@
               <packing>
                 <property name="left_attach">4</property>
                 <property name="top_attach">10</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -909,19 +1130,25 @@
               <packing>
                 <property name="left_attach">4</property>
                 <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="button5">
                 <property name="label" translatable="yes">close</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="close_save" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">11</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>

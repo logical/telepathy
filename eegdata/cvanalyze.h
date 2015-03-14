@@ -1,15 +1,12 @@
 #ifndef CVANALYZE_H
 #define CVANALYZE_H
 
-#include<opencv2/highgui/highgui.hpp>
 
 #define TRIGGERS 10
 #define SAMPLESIZE 640
 #define CHANNELS 4
 #define MAXSAMPLE 65535 //16 bits
 #define ZEROSAMPLE (MAXSAMPLE/2)
-#define PACKETBYTES 128 //packet is 8bytes
-#define PACKETSIZE 32 
 
 #ifdef __cplusplus
 extern "C" {

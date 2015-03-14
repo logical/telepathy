@@ -5,14 +5,13 @@
 #include <gdk/gdk.h>
 #include <glib/gprintf.h>
 #include "cvanalyze.h"
-
-
+#include "eegdatarxtx.h"
+ 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define FRAMEDELAY 50
-//#define BUFFERSIZE (SAMPLESIZE*2)
 #define DEFAULT_FILE    "./telepathy-eeg.dat"
 #define RXTXPROCESS     "./eegdatarxtx"
 #define FIFONAME	"./eegdatafifo"
@@ -23,15 +22,18 @@ extern "C" {
 #define UI_FILE "ui3.ui"
 #define SCOPEWIDTH 640
 #define SCOPEHEIGHT 480
+#define WRITESIZE 32 //number of samples to write at once
 #define YSCALE ((float)SCOPEHEIGHT/(float)MAXSAMPLE)
 #define XSCALE (SCOPEWIDTH/(SAMPLESIZE/2))
+#define RESISTOR 255 //this sets the resistor value that sets the final amplifier gain  
+
+#define DEFAULT_COM	"/dev/rfcomm0"
+#define DEFAULT_BAUD	B230400 
 
   
-  
-int rxpid;  
-FILE* rxdaemon;
-char mode[8];
-  
+pthread_t rxthread;
+
+char mode;
 
 GtkWidget *video,*signalview,*chan1check,*chan2check,*chan3check,*chan4check,*timecheck,*freqcheck,*savedialog,*startbutton,*devicechoice,*rangespin;
 GtkWidget *savename[TRIGGERS],*saveaction[TRIGGERS],*savebutton[TRIGGERS],*deletebutton[TRIGGERS],*activebutton[TRIGGERS];
@@ -65,8 +67,7 @@ void start( GtkWidget *widget , gpointer data);
 void destroy (GtkWidget *widget, gpointer data);
 
 void microsleep(unsigned int us);
-void pointer_shift(unsigned short **a);
-void trace(cairo_t* sc,unsigned short *data);
+void trace(cairo_t* sc,unsigned short *data,unsigned int size);
 int SetupConnection(int port, int baudRate);
 int receive(int port,unsigned char *rxbuffer,unsigned int length);
 void fakepackets(unsigned int length);
@@ -74,7 +75,7 @@ void read_settings_file(void);
 void save_settings_file(void);
 void getdata(void);
 int setrange(int range);
-void writepackets(unsigned short *rxbuffer);
+void writepackets(void);
 
 
 #ifdef __cplusplus

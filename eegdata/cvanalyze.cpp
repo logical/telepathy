@@ -1,142 +1,189 @@
-
+/* this analysis is a learning experience for me :) */
+#include <list>
 #include <iostream> // for standard I/O
-#include <string>   // for strings
-#include <iomanip>  // for controlling float print precision
-#include <sstream>  // string to number conversion
-
-#include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat, Scalar)
-#include <opencv2/imgproc/imgproc.hpp>  // Gaussian Blur
-#include <opencv2/highgui/highgui.hpp>  // OpenCV window I/O
+#include <armadillo>
 
 #include "cvanalyze.h"
+
+/*
+#include <iostream>
+#include <armadillo>
+
+using namespace std;
+using namespace arma;
+
+int main(int argc, char** argv)
+  {
+  mat A = randu<mat>(4,5);
+  mat B = randu<mat>(4,5);
+  
+  cout << A*B.t() << endl;
+  
+  return 0;
+  }
+*/
+
+
+
 
 #define TRIGGERVALUE 1
 
 using namespace std;
-using namespace cv;
+using namespace arma;
 
-typedef Matx<float, 1, SAMPLESIZE> Matxdata;
-typedef Matx<float, 1, SAMPLESIZE/4> Matxspect;
 
-vector<float> trigdata[4][10];
-vector<float> trigspect[4][10];
 
-void dodft(vector<float> in,vector<float> &out);
-double getPSNR ( const Mat& I1, const Mat& I2);
-Scalar getMSSIM( const Mat& I1, const Mat& I2);
+
+void dodft(Col<float> in,Col<float> &out);
+//double getPSNR ( const mat& I1, const mat& I2);
+//Scalar getMSSIM( const mat& I1, const mat& I2);
 
 
 
 
 
 void getpatternimage(unsigned short index){
-  trigdata[0][index].clear();
-  trigdata[1][index].clear();
-  trigdata[2][index].clear();
-  trigdata[3][index].clear();
-  
+/*
+  list<list>(10) trigdata = new list<fvec>();
+  list<list>(10) trigspect = new list<fvec>();
+
+  //data_array trigspect[4];
   for(int i=0;i<SAMPLESIZE;i++){
-      trigdata[0][index].push_back(triggers[index].channel1[i]);
-      trigdata[1][index].push_back(triggers[index].channel2[i]);
-      trigdata[2][index].push_back(triggers[index].channel3[i]);
-      trigdata[3][index].push_back(triggers[index].channel4[i]);
+      trigdata[index](0,i)=triggers[index].channel1[i];
   } 
-
-  dodft(trigdata[0][index],trigspect[0][index]); 
-  dodft(trigdata[1][index],trigspect[1][index]); 
-  dodft(trigdata[2][index],trigspect[2][index]); 
-  dodft(trigdata[3][index],trigspect[3][index]); 
+  dodft(trigdata[index],trigspect[index]); 
+*/
+  
+  
+  
+  
   
 }
 
-void dodft(vector<float> in,vector<float> &out){
-    int samples=SAMPLESIZE/4;
 
-    Mat I=Mat(in);
-//     Mat padded;                            //expand input image to optimal size
-//     int m = getOptimalDFTSize( I.rows );
-//     int n = getOptimalDFTSize( I.cols ); // on the border add zero values
-//     copyMakeBorder(I, padded, 0, m - I.rows, 0, n - I.cols, BORDER_CONSTANT, Scalar::all(0));
 
-    Mat planes[] = {Mat_<float>(I), Mat::zeros(I.size(), CV_32F)};
-    Mat complexI;
-    merge(planes, 2, complexI);         // Add to the expanded another plane with zeros
-    dft(complexI, complexI,DFT_SCALE);            // this way the result may fit in the source matrix
-    
-    // compute the magnitude and switch to logarithmic scale
-    // => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
-      split(complexI, planes);                   // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
-      magnitude(planes[0], planes[1], planes[0]);// planes[0] = magnitude
-      Mat magI = planes[0];
-
-      magI += Scalar::all(1);                    // switch to logarithmic scale
-      log(magI, magI);
-
-    // crop the spectrum, if it has an odd number of rows or columns
-//    magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
 
 
     
-//    magI.col(0).copyTo(out);
+
+float interp1( float x, fvec a )
+{
+    if( x <= 0 )  return a[0];
+    if( x >= a.n_rows - 1 )  return a[a.n_rows-1];
+    int j = int(x);
+    return a[j] + (x - j) * (a[j+1] - a[j]);
+}
+
 
     
+void interpolate( fvec a, fvec &b )
+{
+    float step = float( a.n_rows - 1 ) / (b.n_rows - 1);
+    for( unsigned int j = 0; j < b.n_rows; j ++ ){
+        b[j] = interp1( j*step, a );
+
       
-      Mat result(1,samples,CV_32F);
-      magI(Rect(0,0,1,samples)).copyTo(result);
-      normalize(result, result, 0, MAXSAMPLE, CV_MINMAX);
-      result(Rect(0,0,1,samples)).copyTo(out);
-    
-    
-  
+    }
 }
+
+
 
 void compare_signals(void){
   
-//4 images per pattern one for each channel of the signal and the fft of the signal
-//THIS MIGHT CHANGE
-
-  vector<float> chdata[4];
-  vector<float> chspect[4];
+  int SAMPLERATE=8;
+  fvec chdata(SAMPLESIZE);
+  fvec resampled(SAMPLESIZE*SAMPLERATE);
+  cx_fvec spectrum(SAMPLESIZE);
+ fvec result(SAMPLESIZE);
+  
+/*
+ I want to draw a smooth line for the frequency components.
+  I can only figure out how to do that if the samples and fft are equal length.
+  Then I interpolate the data to get it the right scale for the screen.
+*/
 
   for(unsigned int i=0;i<SAMPLESIZE;i++){
-    chdata[0].push_back(channel1[i]-ZEROSAMPLE);
-    chdata[1].push_back(channel2[i]-ZEROSAMPLE);
-    chdata[2].push_back(channel3[i]-ZEROSAMPLE);
-    chdata[3].push_back(channel4[i]-ZEROSAMPLE);
+    chdata[i]=channel1[i]-ZEROSAMPLE;
   }
   
-  dodft(chdata[0],chspect[0]);
-  dodft(chdata[1],chspect[1]);
-  dodft(chdata[2],chspect[2]);
-  dodft(chdata[3],chspect[3]);
-
+  spectrum = fft(chdata,SAMPLESIZE);
+  result=abs(spectrum);
+  result*=0.05;
+  result=clamp(result, 0, 65535);
+  interpolate(result,resampled);
+  //result=clamp(result, 0, 65535);
   
-    for(unsigned int i=0;i<SAMPLESIZE/4;i++){
-	spectrum1[i]=chspect[0][i];
-	spectrum2[i]=chspect[1][i];
-	spectrum3[i]=chspect[2][i];
-	spectrum4[i]=chspect[3][i];
+    for(unsigned int i=0;i<SAMPLESIZE/2;i++){
+	spectrum1[i]=resampled[i];
     }
 
+   
+    for(unsigned int i=0;i<SAMPLESIZE;i++){
+    chdata[i]=channel2[i]-ZEROSAMPLE;
+  }
+
+  
+  spectrum = fft(chdata,SAMPLESIZE);
+  result=abs(spectrum);
+  result*=0.05;
+  result=clamp(result, 0, 65535);
+  interpolate(result,resampled);
+  
+  
+    for(unsigned int i=0;i<SAMPLESIZE/2;i++){
+	spectrum2[i]=resampled[i];
+    }
+
+
+  for(unsigned int i=0;i<SAMPLESIZE;i++){
+    chdata[i]=channel3[i]-ZEROSAMPLE;
+  }
+
+  spectrum = fft(chdata,SAMPLESIZE);
+  result=abs(spectrum);
+  result*=0.05;
+  result=clamp(result, 0, 65535);
+  interpolate(result,resampled);
+  
+    for(unsigned int i=0;i<SAMPLESIZE/2;i++){
+	spectrum3[i]=resampled[i];
+    }
+
+
+  for(unsigned int i=0;i<SAMPLESIZE;i++){
+    chdata[i]=channel4[i]-ZEROSAMPLE;
+  }
+
+  spectrum = fft(chdata,SAMPLESIZE);
+  result=abs(spectrum);
+  result*=0.05;
+  result=clamp(result, 0, 65535);
+  interpolate(result,resampled);
+  
+    for(unsigned int i=0;i<SAMPLESIZE/2;i++){
+	spectrum4[i]=resampled[i];
+    }
+
+/*
     double psnrV;
     Scalar mssimV;
 
     for(unsigned int j=0;j<4;j++){
 	for(unsigned int i=0;i<TRIGGERS;i++){ //Show the image captured in the window and repeat
 
-	  psnrV = getPSNR(Mat(chdata[j]),Mat(trigdata[j][i]));
+	  psnrV = getPSNR(mat(chdata[j]),mat(trigdata[j][i]));
 	  if(abs(psnrV) < TRIGGERVALUE ){
 	    cout <<triggers[i].name<< " Channel "<<j<<" Trigger "<< i <<" data";
 	    cout << setiosflags(ios::fixed) << setprecision(3) << psnrV << "dB"<<endl;
-	    mssimV = getMSSIM(Mat(chdata[j]), Mat(trigdata[j][i]));
+	    mssimV = getMSSIM(mat(chdata[j]), mat(trigdata[j][i]));
 	    cout << " MSSIM: " <<  setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "%"<<endl;
 	  }
 	//spectrum
-	  psnrV = getPSNR(Mat(chspect[j]),Mat(trigspect[j][i]));
+	  psnrV = getPSNR(mat(chspect[j]),mat(trigspect[j][i]));
 	  if(abs(psnrV) < TRIGGERVALUE ){
 	    cout <<triggers[i].name<< " Channel "<<j<<" Trigger "<< i << " spectrum ";
 	    cout << setiosflags(ios::fixed) << setprecision(3) << psnrV << "dB"<<endl;
-	    mssimV = getMSSIM(Mat(chspect[j]), Mat(trigspect[j][i]));
+	    mssimV = getMSSIM(mat(chspect[j]), mat(trigspect[j][i]));
 	    cout << " MSSIM: " <<  setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "%"<<endl;
 	  }
 	
@@ -144,17 +191,17 @@ void compare_signals(void){
 
     }
   
-  
+  */
   
 }
 
 
 
 
-
-double getPSNR(const Mat& I1, const Mat& I2)
+/*
+double getPSNR(const mat& I1, const mat& I2)
 {
-    Mat s1;
+    mat s1;
     absdiff(I1, I2, s1);       // |I1 - I2|
     s1.convertTo(s1, CV_32F);  // cannot make a square on 8 bits
     s1 = s1.mul(s1);           // |I1 - I2|^2
@@ -173,31 +220,29 @@ double getPSNR(const Mat& I1, const Mat& I2)
     }
 }
 
-Scalar getMSSIM( const Mat& i1, const Mat& i2)
+Scalar getMSSIM( const mat& i1, const mat& i2)
 {
  const double C1 = 6.5025, C2 = 58.5225;
- /***************************** INITS **********************************/
  int d     = CV_32F;
 
- Mat I1, I2;
+ mat I1, I2;
  i1.convertTo(I1, d);           // cannot calculate on one byte large values
  i2.convertTo(I2, d);
 
- Mat I2_2   = I2.mul(I2);        // I2^2
- Mat I1_2   = I1.mul(I1);        // I1^2
- Mat I1_I2  = I1.mul(I2);        // I1 * I2
+ mat I2_2   = I2.mul(I2);        // I2^2
+ mat I1_2   = I1.mul(I1);        // I1^2
+ mat I1_I2  = I1.mul(I2);        // I1 * I2
 
- /***********************PRELIMINARY COMPUTING ******************************/
 
- Mat mu1, mu2;   //
+ mat mu1, mu2;   //
  GaussianBlur(I1, mu1, Size(11, 11), 1.5);
  GaussianBlur(I2, mu2, Size(11, 11), 1.5);
 
- Mat mu1_2   =   mu1.mul(mu1);
- Mat mu2_2   =   mu2.mul(mu2);
- Mat mu1_mu2 =   mu1.mul(mu2);
+ mat mu1_2   =   mu1.mul(mu1);
+ mat mu2_2   =   mu2.mul(mu2);
+ mat mu1_mu2 =   mu1.mul(mu2);
 
- Mat sigma1_2, sigma2_2, sigma12;
+ mat sigma1_2, sigma2_2, sigma12;
 
  GaussianBlur(I1_2, sigma1_2, Size(11, 11), 1.5);
  sigma1_2 -= mu1_2;
@@ -209,7 +254,7 @@ Scalar getMSSIM( const Mat& i1, const Mat& i2)
  sigma12 -= mu1_mu2;
 
  ///////////////////////////////// FORMULA ////////////////////////////////
- Mat t1, t2, t3;
+ mat t1, t2, t3;
 
  t1 = 2 * mu1_mu2 + C1;
  t2 = 2 * sigma12 + C2;
@@ -219,9 +264,10 @@ Scalar getMSSIM( const Mat& i1, const Mat& i2)
  t2 = sigma1_2 + sigma2_2 + C2;
  t1 = t1.mul(t2);               // t1 =((mu1_2 + mu2_2 + C1).*(sigma1_2 + sigma2_2 + C2))
 
- Mat ssim_map;
+ mat ssim_map;
  divide(t3, t1, ssim_map);      // ssim_map =  t3./t1;
 
  Scalar mssim = mean( ssim_map ); // mssim = average of ssim map
  return mssim;
 }
+*/

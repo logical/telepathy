@@ -5,14 +5,11 @@
 CC= gcc
 
 LD=ld
-CFILES=eegdata.c eegdata_callbacks.c 
+CFILES=eegdata.c eegdata_callbacks.c eegdatarxtx.c circular_buffer.c
 
-CFLAGS= --std=gnu99 -Wall -rdynamic
-	
+CFLAGS= --std=gnu99 -rdynamic -pthread	
 CLIBS=	-lm \
 	-lglib-2.0 \
-	-lbiosig \
-	-lcholmod\
 	-lpangocairo-1.0\
 	-lpango-1.0\
 	-latk-1.0\
@@ -54,39 +51,19 @@ CPATHS=	-pthread \
 
 CPPFILES=cvanalyze.cpp
 
-CPPFLAGS=-Wall 
+CPPFLAGS = -O1 
 
-CPPLIBS=-lstdc++\
-	-lm\
-	-lopencv_calib3d\
-	-lopencv_contrib\
-	-lopencv_core\
-	-lopencv_features2d\
-	-lopencv_flann\
-	-lopencv_gpu\
-	-lopencv_highgui\
-	-lopencv_imgproc\
-	-lopencv_legacy\
-	-lopencv_ml\
-	-lopencv_objdetect\
-	-lopencv_ocl\
-	-lopencv_photo\
-	-lopencv_stitching\
-	-lopencv_superres\
-	-lopencv_ts\
-	-lopencv_video\
-	-lopencv_videostab 
+CPPLIBS = -lstdc++\
+	  -larmadillo\
 
-
-
-OFILES= eegdata.o eegdata_callbacks.o cvanalyze.o
+OFILES= eegdata.o eegdatarxtx.o eegdata_callbacks.o cvanalyze.o circular_buffer.o
 
 all:
 
 	$(CC) -c $(CPPFLAGS) $(CPPFILES) 
 	$(CC) -c $(CFLAGS) $(CFILES) $(CPATHS)
 	$(CC) $(CFLAGS) $(OFILES) $(CLIBS) $(CPPLIBS) -o eegdata
-	$(CC) eegdatarxtx.c -lm -o eegdatarxtx 
+
 
 clean: 
 	rm -f *.o eegdata eegdatarxtx

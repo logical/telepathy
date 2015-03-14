@@ -1,6 +1,6 @@
 // gcc -std=gnu99 -Wall -export-dynamic -g eegdata.c eegdata_callbacks.c kiss_fft/tools/kiss_fftr.c kiss_fft/kiss_fft.c -o eegdata  -lbiosig -lcholmod -lm -Ikiss_fft -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_objdetect `pkg-config --cflags gtk+-3.0 --libs gtk+-3.0 `
 #include <stdlib.h>
-#include <biosig.h>
+//#include <biosig.h>
 #include <complex.h>
 #include <time.h>
 #include <sys/stat.h>
@@ -10,11 +10,9 @@
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <fcntl.h>   /* File control definitions */
 #include <errno.h> /* Error number definitions */
+#include <termios.h> /* POSIX terminal control definitions */
 
 #include "eegdata.h"
-
-
-
 
 
 GtkWidget* create_window (void)
@@ -76,13 +74,13 @@ GtkWidget* create_window (void)
 	return window;
 }  
 
-void trace(cairo_t* sc,unsigned short *data){
-  double x = SCOPEWIDTH-(PACKETSIZE*XSCALE);
+void trace(cairo_t* sc,unsigned short *data,unsigned int size){
+  double x = SCOPEWIDTH-(size*XSCALE);
   double y= SCOPEHEIGHT-(data[0]*YSCALE);
   
   cairo_move_to (sc,x, y);
   cairo_set_line_width(sc,2);
-  for(int i=0;i<PACKETSIZE;i++){
+  for(int i=0;i<size;i++){
       y=SCOPEHEIGHT-(data[i+1]*YSCALE);
       x+=XSCALE;
       cairo_line_to (sc,x, y);
@@ -94,26 +92,23 @@ void trace(cairo_t* sc,unsigned short *data){
 
 
 
-void writepackets(unsigned short *rxbuffer){
+void writepackets(void){
 
 //shift everything down
-  int j=0;
-  memmove(channel1,channel1+PACKETSIZE,sizeof(unsigned short)*SAMPLESIZE-PACKETSIZE);
-  memmove(channel2,channel2+PACKETSIZE,sizeof(unsigned short)*SAMPLESIZE-PACKETSIZE);
-  memmove(channel3,channel3+PACKETSIZE,sizeof(unsigned short)*SAMPLESIZE-PACKETSIZE);
-  memmove(channel4,channel4+PACKETSIZE,sizeof(unsigned short)*SAMPLESIZE-PACKETSIZE);
-  for(int i=SAMPLESIZE-PACKETSIZE;i<SAMPLESIZE;i++,j+=4){
-	channel1[i] = rxbuffer[j+3];//16 bits
-	channel2[i] = rxbuffer[j+2];
-	channel3[i] = rxbuffer[j+1];
-	channel4[i] = rxbuffer[j];
-	//	if(!swrite(data, 1, file))perror("write failed:");
+
+  memmove(channel1,channel1+WRITESIZE,sizeof(unsigned short)*(SAMPLESIZE-WRITESIZE));
+  memmove(channel2,channel2+WRITESIZE,sizeof(unsigned short)*(SAMPLESIZE-WRITESIZE));
+  memmove(channel3,channel3+WRITESIZE,sizeof(unsigned short)*(SAMPLESIZE-WRITESIZE));
+  memmove(channel4,channel4+WRITESIZE,sizeof(unsigned short)*(SAMPLESIZE-WRITESIZE));
+  for(int i=SAMPLESIZE-WRITESIZE;i<SAMPLESIZE;i++){
+		cb_pop_front(&rxbuffer, &channel1[i]);
+		cb_pop_front(&rxbuffer, &channel2[i]);
+		cb_pop_front(&rxbuffer, &channel3[i]);
+		cb_pop_front(&rxbuffer, &channel4[i]);
     }
-    
-    
 }
 
-
+/*
 
 void createedf(void){
   
@@ -129,23 +124,23 @@ void createedf(void){
       
     edfout->TYPE=EDF;
 
-     edfout->CHANNEL[0].PhysMin=0;	/* physical minimum */
-     edfout->CHANNEL[0].PhysMax=3.3;	/* physical maximum */
-     edfout->CHANNEL[0].DigMin=0;	/* digital minimum */
-     edfout->CHANNEL[0].DigMax=4096;	/* digital maximum */
-     edfout->CHANNEL[0].Cal=1;		/* gain factor */
-     edfout->CHANNEL[0].Off=0;		/* bias */
+     edfout->CHANNEL[0].PhysMin=0;	// physical minimum 
+     edfout->CHANNEL[0].PhysMax=3.3;	// physical maximum 
+     edfout->CHANNEL[0].DigMin=0;	// digital minimum 
+     edfout->CHANNEL[0].DigMax=4096;	// digital maximum 
+     edfout->CHANNEL[0].Cal=1;		// gain factor 
+     edfout->CHANNEL[0].Off=0;		// bias 
      edfout->CHANNEL[0].OnOff=1;
      edfout->CHANNEL[0].SPR=1;
      edfout->CHANNEL[0].TOffset=1/SAMPLESIZE;
      sprintf(edfout->CHANNEL[0].Label,"CHANNEL 1");;
  
-     edfout->CHANNEL[1].PhysMin=0;	/* physical minimum */
-     edfout->CHANNEL[1].PhysMax=3.3;	/* physical maximum */
-     edfout->CHANNEL[1].DigMin=0;	/* digital minimum */
-     edfout->CHANNEL[1].DigMax=4096;	/* digital maximum */
-     edfout->CHANNEL[1].Cal=1;		/* gain factor */
-     edfout->CHANNEL[1].Off=0;		/* bias */
+     edfout->CHANNEL[1].PhysMin=0;	// physical minimum 
+     edfout->CHANNEL[1].PhysMax=3.3;	// physical maximum 
+     edfout->CHANNEL[1].DigMin=0;	// digital minimum 
+     edfout->CHANNEL[1].DigMax=4096;	// digital maximum 
+     edfout->CHANNEL[1].Cal=1;		// gain factor 
+     edfout->CHANNEL[1].Off=0;		// bias 
      edfout->CHANNEL[1].OnOff=1;
      edfout->CHANNEL[1].SPR=1;
      edfout->CHANNEL[1].TOffset=1/SAMPLESIZE;
@@ -176,7 +171,7 @@ void createedf(void){
   
   
 }
-
+*/
 
 void allocate_buffers(void){
 
@@ -185,10 +180,10 @@ void allocate_buffers(void){
   channel2 = (unsigned short*)malloc( sizeof(unsigned short)*SAMPLESIZE ) ;
   channel3 = (unsigned short*)malloc( sizeof(unsigned short)*SAMPLESIZE ) ;
   channel4 = (unsigned short*)malloc( sizeof(unsigned short)*SAMPLESIZE ) ;
-  spectrum1 = (unsigned short*)malloc( SAMPLESIZE*sizeof(unsigned short) ) ;
-  spectrum2 = (unsigned short*)malloc( SAMPLESIZE*sizeof(unsigned short) ) ;
-  spectrum3 = (unsigned short*)malloc( SAMPLESIZE*sizeof(unsigned short) ) ;
-  spectrum4 = (unsigned short*)malloc( SAMPLESIZE*sizeof(unsigned short) ) ;
+  spectrum1 = (unsigned short*)malloc( sizeof(unsigned short)*(SAMPLESIZE/2) ) ;
+  spectrum2 = (unsigned short*)malloc( sizeof(unsigned short)*(SAMPLESIZE/2) ) ;
+  spectrum3 = (unsigned short*)malloc( sizeof(unsigned short)*(SAMPLESIZE/2) ) ;
+  spectrum4 = (unsigned short*)malloc( sizeof(unsigned short)*(SAMPLESIZE/2) ) ;
   memset(channel1,0,SAMPLESIZE);
   memset(channel2,0,SAMPLESIZE);
   memset(channel3,0,SAMPLESIZE);
@@ -221,29 +216,82 @@ void save_settings_file(void){
  fclose(settings);
 }
 
+void opendaemon(){
 
+
+	int result=pthread_create(&rxthread,NULL,portio,NULL);
+	if(result!=0){
+		perror("creating rxthread");
+		exit(1);
+	}
+ //set resistor to default
+	sprintf(command,"r %d",RESISTOR);
+	gtk_spin_button_set_value((GtkSpinButton*)rangespin,RESISTOR);
+
+}
+// SetupConnection sets the port's baud, parity, etc.
+int SetupConnection(int port, int baudRate){
+  struct termios attribs;
+  memset(&attribs,0,sizeof(attribs));
+  cfsetispeed(&attribs, baudRate);//B1500000 
+  cfsetospeed(&attribs, baudRate);
+  attribs.c_iflag &= ~( IGNCR | IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR | ICRNL | IXON | IXOFF );
+  attribs.c_iflag=(IGNPAR  | IXANY) ;
+  attribs.c_oflag &= ~OPOST;
+  attribs.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+  attribs.c_cflag &= ~(CSTOPB | CSIZE | PARENB);
+  attribs.c_cflag |= CS8;
+  attribs.c_cc[VMIN]=PACKETSIZE*2;
+  attribs.c_cc[VTIME]=0;
+  sleep(2);
+  tcflush(port, TCIOFLUSH); 
+  tcsetattr(port, TCSANOW, &attribs);
+  tcgetattr(port, &attribs);
+  return 1;
+  
+}
 
 int main( int   argc,char *argv[]){
+
+		port=-1;
+
+		port = open(DEFAULT_COM, O_RDWR | O_NOCTTY );
+		if (port == -1){
+			perror("Opening COM port");
+			exit(0);
+		}
+		if (!SetupConnection(port, DEFAULT_BAUD)) {
+			perror("SetupConnection");
+			close(port);
+			exit(0);
+		}
+
+
+
     allocate_buffers();
     GtkWidget *window;
     gtk_init(&argc, &argv);
     window = create_window ();
     read_settings_file();
-    for(unsigned int i=0;i<10;i++)getpatternimage(i);
-    sprintf(mode,"-f");
-    gtk_widget_show (window);
+   // for(unsigned int i=0;i<10;i++)getpatternimage(i);
+		opendaemon();
 
+    gtk_widget_show (window);
     gtk_main();
-/*
-    while(1){
-      gtk_main_iteration_do(FALSE);
-      if(controlbits.DATA){
-	    getdata();
-	    compare_signals();
-      }
-      if(controlbits.DONE)break;
-    }
-*/
+	
+
+		sprintf(command,"s");
+		while(strlen(command));
+		sprintf(command,"x");
+		while(strlen(command));
+		
+	  if(port!=-1){
+				close(port);
+		}
+
+		pthread_join(rxthread,NULL);
+
+		sleep(2);
     return 0;
 
 }
