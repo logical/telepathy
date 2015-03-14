@@ -20,6 +20,7 @@
  */
 //#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 #include <pic16f1788.h>
 
 #define NO_BIT_DEFINES
@@ -49,12 +50,14 @@
 
 
 /*pin defines*/
-#define ERROR_PIN PORTCbits.RC1
-//these go to the adc
+#define ERROR_PIN PORTAbits.RA6
+//these go to the adc and digital potentiometer
+#define POT_CS_PIN PORTCbits.RC1
 #define ADC_CONV_PIN PORTCbits.RC2
 #define SCK_PIN PORTCbits.RC3
 #define SDI_PIN PORTCbits.RC4
 #define SDO_PIN PORTCbits.RC5
+
 
 //these got to the multiplexer
 #define MPX_A_PIN PORTBbits.RB0
@@ -73,7 +76,7 @@
 #define BAUD_38400 1
 
 #define PACKETSIZE 8
-
+#define MAXSAMPLE 65535 //16 bits
 
 struct{
     unsigned char size;
@@ -87,8 +90,6 @@ struct{
 #define START 0x12
 #define STOP 0x14
 #define TESTMODE 0x07
-
-
 
 union{
     struct{
@@ -146,8 +147,10 @@ void interrupt isr(){
             controlbits.DATA = 1;
         else if(rx==XON)
             controlbits.FLOW = 1;
-        else if(rx==STOP)
+        else if(rx==STOP){
             controlbits.DATA = 0;
+            controlbits.TEST = 0;
+        }
         else if(rx==TESTMODE)
             controlbits.TEST=1;
         else {
@@ -162,11 +165,32 @@ void interrupt isr(){
         PIR1bits.RCIF=0;
     }
 }
-#define INTERVAL 100
+//this resistor is currently on the grounded resistor of a non inverting opamp
+//gain=1+rf/rg
+void setresistor(unsigned char value){
+    //combining the digital pot and adc on the same spi
+    //the adc doesn't have a cs pin it has a conv pin
+    //also both the host and the adc sdo pin should be seperated
+    //by a resistor to prevent bus conflicts because the pot has
+    //a multiplexed sdi/sdo
+    ADC_CONV_PIN=1;
+    POT_CS_PIN=0;
+    SSPBUF = 0;//write command
+    while(!SSPSTATbits.BF);
+    SSPBUF = value;// first 8 bits
+    while(!SSPSTATbits.BF);
+    POT_CS_PIN=1;
+    ADC_CONV_PIN=0;
+    delay_100us(1);
+}
+
+
+
+#define INTERVAL 120
 void feedtransmitter(){
  //   feed 8 bytes
     unsigned int counter=0; //this will count the wait time to give an acurate delay
-    while(txbuffer.size>0){
+    while(txbuffer.size>0){ //this loop transmits in reverse while couting length down
         TXREG = txbuffer.elems[--txbuffer.size];
         while(!TXSTAbits.TRMT)counter++;
     }
@@ -181,12 +205,14 @@ void senddata(void){
     unsigned int count=0;
     txbuffer.size=0;
     while(controlbits.DATA){
+            txbuffer.elems[txbuffer.size++]=XOFF;//stop sync byte
 
             count=0;
             MPX_A_PIN=0;                //set multiplexer channel
             MPX_B_PIN=0;
+            delay_100us(1);//settling time
             ADC_CONV_PIN=1;             //start conversion
-            delay_100us(1);
+            delay_100us(1);//conversion time
             ADC_CONV_PIN=0;             //end conversion start transmission
             PIR1bits.SSP1IF=0;          // Clear SSP interrupt bit
              SSPBUF = 0x00;              // Write dummy data byte to the buffer to initiate transmission
@@ -204,6 +230,7 @@ void senddata(void){
             count=0;
             MPX_A_PIN=1;
             MPX_B_PIN=0;
+            delay_100us(1);//settling time
             ADC_CONV_PIN=1;
             delay_100us(1);
             ADC_CONV_PIN=0;
@@ -222,6 +249,7 @@ void senddata(void){
             count=0;
             MPX_A_PIN=0;
             MPX_B_PIN=1;
+            delay_100us(1);//settling time
             ADC_CONV_PIN=1;
             delay_100us(1);
             ADC_CONV_PIN=0;
@@ -240,6 +268,7 @@ void senddata(void){
             count=0;
             MPX_A_PIN=1;
             MPX_B_PIN=1;
+            delay_100us(1);//settling time
             ADC_CONV_PIN=1;
             delay_100us(1);
             ADC_CONV_PIN=0;
@@ -255,10 +284,48 @@ void senddata(void){
             txbuffer.elems[txbuffer.size++]=SSPBUF;
             while(count<INTERVAL)count++;
 
+            txbuffer.elems[txbuffer.size++]=XON;//start sync byte
+
             feedtransmitter();
 
     }
 }
+
+//testmode sends 4 sawtooth waves
+void test(void){
+    int speed=2;
+    union {
+        unsigned char ch[2];
+        unsigned short n;
+    } channel[4];
+
+    while(controlbits.TEST){
+        txbuffer.elems[txbuffer.size++]=XOFF;//start sync byte
+        txbuffer.elems[txbuffer.size++]=channel[0].ch[0];
+        txbuffer.elems[txbuffer.size++]=channel[0].ch[1];;
+        txbuffer.elems[txbuffer.size++]=channel[1].ch[0];
+        txbuffer.elems[txbuffer.size++]=channel[1].ch[1];;
+        txbuffer.elems[txbuffer.size++]=channel[2].ch[0];
+        txbuffer.elems[txbuffer.size++]=channel[2].ch[1];;
+        txbuffer.elems[txbuffer.size++]=channel[3].ch[0];
+        txbuffer.elems[txbuffer.size++]=channel[3].ch[1];;
+        txbuffer.elems[txbuffer.size++]=XON;//start sync byte
+
+        channel[0].n+=speed;
+        channel[1].n+=speed*2;
+        channel[2].n+=speed*3;
+        channel[3].n+=speed*4;
+        if(channel[0].n >= MAXSAMPLE)channel[0].n=0;
+        if(channel[1].n >= MAXSAMPLE)channel[1].n=0;
+        if(channel[2].n >= MAXSAMPLE)channel[2].n=0;
+        if(channel[3].n >= MAXSAMPLE)channel[3].n=0;
+        delay_100us(60);
+
+        feedtransmitter();
+    }
+}
+
+
 
 void SetupADC(void){
 //    this is the setup for the ltc1864 16 bit spi adc
@@ -354,14 +421,21 @@ void resetHC05(){
     //startup time
 
 }
-void test(){
-    TXstring("hello\n");
-    controlbits.TEST=0;
-}
 
 void processcommand(void){
+    char *token;
+    token=strtok(rxbuffer.elems," ");
+    switch(token[0]){
+        case 'r':
+            token=strtok(NULL," ");
+            if(token!=NULL){
+                int value=strtol(token,NULL,10);
+                setresistor(value);
+            }
+        default:
+            break;
 
-
+    }
     rxbuffer.size=0;
     rxbuffer.flag=0;
 
