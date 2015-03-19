@@ -62,6 +62,13 @@
 //these got to the multiplexer
 #define MPX_A_PIN PORTBbits.RB0
 #define MPX_B_PIN PORTBbits.RB1
+//These outputs ground unused multiplexer inputs to prevent parasitic capacitance
+#define GND_IN_0 PORTBbits.RB2
+#define GND_IN_1 PORTBbits.RB3
+#define GND_IN_2 PORTBbits.RB4
+#define GND_IN_3 PORTBbits.RB5
+
+
 
 //these go to the bluetooth
 #define CMD_PIN PORTCbits.RC0
@@ -208,8 +215,9 @@ void senddata(void){
             txbuffer.elems[txbuffer.size++]=XOFF;//stop sync byte
 
             count=0;
-            MPX_A_PIN=0;                //set multiplexer channel
-            MPX_B_PIN=0;
+            PORTB=0b00111000;
+//            MPX_A_PIN=0;                //set multiplexer channel
+//            MPX_B_PIN=0;
             delay_100us(1);//settling time
             ADC_CONV_PIN=1;             //start conversion
             delay_100us(1);//conversion time
@@ -228,8 +236,9 @@ void senddata(void){
 
 
             count=0;
-            MPX_A_PIN=1;
-            MPX_B_PIN=0;
+            PORTB=0b00110101;
+//            MPX_A_PIN=1;
+//            MPX_B_PIN=0;
             delay_100us(1);//settling time
             ADC_CONV_PIN=1;
             delay_100us(1);
@@ -247,8 +256,9 @@ void senddata(void){
             while(count<INTERVAL)count++;
 
             count=0;
-            MPX_A_PIN=0;
-            MPX_B_PIN=1;
+            PORTB=0b00101110;
+//            MPX_A_PIN=0;
+//            MPX_B_PIN=1;
             delay_100us(1);//settling time
             ADC_CONV_PIN=1;
             delay_100us(1);
@@ -266,6 +276,7 @@ void senddata(void){
             while(count<INTERVAL)count++;
 
             count=0;
+            PORTB=0b00011111;
             MPX_A_PIN=1;
             MPX_B_PIN=1;
             delay_100us(1);//settling time
