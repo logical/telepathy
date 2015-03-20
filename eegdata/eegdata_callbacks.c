@@ -22,8 +22,6 @@
 
 static gint timeout (gpointer data){
   //static gboolean data_ready(GIOChannel *channel, GIOCondition cond, gpointer data){
-  int r=0;
-
   if(rxbuffer.count>=WRITESIZE*CHANNELS){
     writepackets();
     if(!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(timecheck))){
@@ -95,22 +93,22 @@ if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(timecheck))){
   int start=SAMPLESIZE-WRITESIZE-1;  
   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chan1check))){
       cairo_set_source_rgb (cr,1, 0, 0);
-      trace(cr,channel1+start,WRITESIZE);
+      trace(cr,&channel1[start],WRITESIZE);
       cairo_stroke (cr);
   }
   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chan2check))){
       cairo_set_source_rgb (cr,0, 0, 1);
-      trace(cr,channel2+start,WRITESIZE);
+      trace(cr,&channel2[start],WRITESIZE);
       cairo_stroke (cr);
     }
   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chan3check))){
       cairo_set_source_rgb (cr,0, 1, 0);
-      trace(cr,channel3+start,WRITESIZE);
+      trace(cr,&channel3[start],WRITESIZE);
       cairo_stroke (cr);
     }
   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chan4check))){
       cairo_set_source_rgb (cr,1, 1, 0);
-      trace(cr,channel4+start,WRITESIZE);
+      trace(cr,&channel4[start],WRITESIZE);
       cairo_stroke (cr);
     }
   cairo_surface_flush(scope);

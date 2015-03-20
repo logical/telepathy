@@ -45,10 +45,14 @@ void receivedata(const char mode){
 	  
 	  if(result==length){
 			if(packet[0]==XON && packet[length-1]==XOFF){
-				for (int i=1;i<PACKETSIZE;i+=2){
-					unsigned short data=((unsigned short)packet[i]<<8)+packet[i+1];
+					unsigned short data=((unsigned short)packet[1]<<8)+packet[2];
 					cb_push_back(&rxbuffer,&data);
-				}
+					data=((unsigned short)packet[3]<<8)+packet[4];
+					cb_push_back(&rxbuffer,&data);
+					data=((unsigned short)packet[5]<<8)+packet[6];
+					cb_push_back(&rxbuffer,&data);
+					data=((unsigned short)packet[7]<<8)+packet[8];
+					cb_push_back(&rxbuffer,&data);
 			}
 			else{
 				printf("start=%d ,stop=%d \n",packet[0],packet[length-1]);

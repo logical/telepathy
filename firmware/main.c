@@ -277,8 +277,8 @@ void senddata(void){
 
             count=0;
             PORTB=0b00011111;
-            MPX_A_PIN=1;
-            MPX_B_PIN=1;
+//            MPX_A_PIN=1;
+//            MPX_B_PIN=1;
             delay_100us(1);//settling time
             ADC_CONV_PIN=1;
             delay_100us(1);

@@ -96,10 +96,10 @@ void writepackets(void){
 
 //shift everything down
 
-  memmove(channel1,channel1+WRITESIZE,sizeof(unsigned short)*(SAMPLESIZE-WRITESIZE));
-  memmove(channel2,channel2+WRITESIZE,sizeof(unsigned short)*(SAMPLESIZE-WRITESIZE));
-  memmove(channel3,channel3+WRITESIZE,sizeof(unsigned short)*(SAMPLESIZE-WRITESIZE));
-  memmove(channel4,channel4+WRITESIZE,sizeof(unsigned short)*(SAMPLESIZE-WRITESIZE));
+  memmove(channel1,&channel1[WRITESIZE],sizeof(unsigned short)*(SAMPLESIZE-WRITESIZE));
+  memmove(channel2,&channel2[WRITESIZE],sizeof(unsigned short)*(SAMPLESIZE-WRITESIZE));
+  memmove(channel3,&channel3[WRITESIZE],sizeof(unsigned short)*(SAMPLESIZE-WRITESIZE));
+  memmove(channel4,&channel4[WRITESIZE],sizeof(unsigned short)*(SAMPLESIZE-WRITESIZE));
   for(int i=SAMPLESIZE-WRITESIZE;i<SAMPLESIZE;i++){
 		cb_pop_front(&rxbuffer, &channel1[i]);
 		cb_pop_front(&rxbuffer, &channel2[i]);

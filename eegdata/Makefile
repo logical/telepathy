@@ -66,5 +66,5 @@ all:
 
 
 clean: 
-	rm -f *.o eegdata eegdatarxtx
+	rm -f *.o eegdata
 
