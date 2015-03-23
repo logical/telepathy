@@ -39,11 +39,11 @@ draft.png is a rough draft of my current design which is under development and w
 
 The analog amplifier portion of the circuit is based on [this dual channel fm frontend from openeeg](http://openeeg.sourceforge.net/doc/hw/sceeg/DualChannelFMUnit-Sheet1.jpg) 
 
+I have created a kicad schematic and pcb (kicad build 2012-apr-16-27).The schematic does not have resistor and capacitor values in it yet because I may change them. The pcb is untested. In order to create a pcb you have to export to gerber, then run pcb2gcode on th gerber if needed. 
 
 
 
-
-Disclaimer:
+DISCLAIMER:
 
 This project is an EXPERIMENT. I make no claims that it actually does anything.It may be harmful to 
 individuals or property.
