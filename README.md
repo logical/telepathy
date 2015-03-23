@@ -35,7 +35,7 @@ I have also included a mcp4131-103 digital pot to adjust the final amplifier.
 
 SCHEMATIC:
 
-draft.png is a rough draft of my current design which is under development and will certainly change.The multiplexed design may be difficult but it is just an experiment. the npn transistors ground the unselected inputs to reduce parasitics.
+draft.png is a rough draft of my current design which is under development and will certainly change. the npn transistors ground the unselected inputs to reduce parasitics.
 
 The analog amplifier portion of the circuit is based on [this dual channel fm frontend from openeeg](http://openeeg.sourceforge.net/doc/hw/sceeg/DualChannelFMUnit-Sheet1.jpg) 
 

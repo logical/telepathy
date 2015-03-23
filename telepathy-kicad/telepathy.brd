@@ -1,4 +1,4 @@
-PCBNEW-BOARD Version 1 date Mon 23 Mar 2015 09:03:13 AM CDT
+PCBNEW-BOARD Version 1 date Mon 23 Mar 2015 09:28:42 AM CDT
 
 # Created by Pcbnew(2012-apr-16-27)-stable
 
@@ -59,7 +59,7 @@ PadSize 591 295
 PadDrill 0
 Pad2MaskClearance 100
 AuxiliaryAxisOrg 0 0
-PcbPlotParams (pcbplotparams (layerselection 32769) (usegerberextensions true) (excludeedgelayer false) (linewidth 60) (plotframeref false) (viasonmask false) (mode 1) (useauxorigin false) (hpglpennumber 1) (hpglpenspeed 20) (hpglpendiameter 15) (hpglpenoverlay 0) (pscolor true) (psnegative false) (psa4output false) (plotreference true) (plotvalue true) (plotothertext true) (plotinvisibletext false) (padsonsilk false) (subtractmaskfromsilk false) (outputformat 3) (mirror false) (drillshape 1) (scaleselection 1) (outputdirectory ../../telepathy-gcode/))
+PcbPlotParams (pcbplotparams (layerselection 32769) (usegerberextensions true) (excludeedgelayer false) (linewidth 60) (plotframeref false) (viasonmask false) (mode 1) (useauxorigin false) (hpglpennumber 1) (hpglpenspeed 20) (hpglpendiameter 15) (hpglpenoverlay 0) (pscolor true) (psnegative false) (psa4output false) (plotreference true) (plotvalue true) (plotothertext true) (plotinvisibletext false) (padsonsilk false) (subtractmaskfromsilk false) (outputformat 1) (mirror false) (drillshape 1) (scaleselection 1) (outputdirectory ../../telepathy-gcode/))
 $EndSETUP
 
 $EQUIPOT
