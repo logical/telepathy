@@ -1,6 +1,6 @@
-update=Sat 21 Mar 2015 07:57:37 PM CDT
+update=Mon 23 Mar 2015 11:42:00 AM CDT
 version=1
-last_client=pcbnew
+last_client=kicad
 [eeschema]
 version=1
 PageLayoutDescrFile=
@@ -49,8 +49,6 @@ LibName33=atmel
 LibName34=contrib
 LibName35=valves
 LibName36=mcp41x1
-[general]
-version=1
 [cvpcb]
 version=1
 NetIExt=net
@@ -147,3 +145,5 @@ LibName71=contrib/Transistor_TO-247_RevC
 LibName72=contrib/WireConnections-Bridges_RevA
 LibName73=contrib/WirePads_RevA
 LibName74=SOT89-3_SOT89-5_Housing_RevA_02Sep2012
+[general]
+version=1

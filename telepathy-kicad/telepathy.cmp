@@ -1,10 +1,10 @@
-Cmp-Mod V01 Genere par PcbNew le Sun 22 Mar 2015 11:06:55 AM CDT
+Cmp-Mod V01 Created by CvPcb (2012-apr-16-27)-stable date = Mon 23 Mar 2015 10:31:10 AM CDT
 
 BeginCmp
 TimeStamp = /550BFC8D;
 Reference = C1;
 ValeurCmp = C;
-IdModule  = C_SMD_7x7;
+IdModule  = C_SMD_4x4;
 EndCmp
 
 BeginCmp

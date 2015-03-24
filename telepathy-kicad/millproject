@@ -1,0 +1,33 @@
+# this is an example config file for pcb2gcode.
+# place this in the same directory as your gerber files to save typing
+
+metric=1
+metricoutput=1
+zero-start=1
+nog81=1
+onedrill=1
+drill-front=1
+
+# You may want to uncomment and change those in local project files
+back=telepathy-Front.gtl
+front=telepathy-Back.gbl
+#drill=telepathy.drl
+
+# parameters for isolation routing / engraving / etching
+zwork=-1
+zsafe=15
+zchange=15
+mill-feed=200
+mill-speed=30000
+
+
+# drilling parameters
+#zcut=2
+cutter-diameter=0.01
+#zdrill=-3
+#drill-feed=300
+#drill-speed=20000
+
+# generate voronoi regions
+offset=0
+dpi=1000
