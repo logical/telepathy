@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2012-apr-16-27)-stable date = Sun 29 Mar 2015 10:30:17 AM CDT
+Cmp-Mod V01 Created by CvPcb (2012-apr-16-27)-stable date = Mon 30 Mar 2015 08:24:59 PM CDT
 
 BeginCmp
 TimeStamp = /5510329C;
@@ -337,10 +337,10 @@ IdModule  = SM0805;
 EndCmp
 
 BeginCmp
-TimeStamp = /550BACB7;
+TimeStamp = /5519F739;
 Reference = U1;
-ValeurCmp = LM7805;
-IdModule  = SOT89-3_Housing_Handsoldering_RevA_02Sep2012;
+ValeurCmp = AMS1117;
+IdModule  = SOT223;
 EndCmp
 
 BeginCmp
@@ -354,7 +354,7 @@ BeginCmp
 TimeStamp = /550BB1AA;
 Reference = U3;
 ValeurCmp = DIL18;
-IdModule  = SO18E;
+IdModule  = SO18W;
 EndCmp
 
 BeginCmp
