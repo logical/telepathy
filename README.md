@@ -29,8 +29,8 @@ FIRMWARE:
 The firmware is for a PIC microcontroller 16f1788 and a bluetooth serial module hc-05.
 
 I have wrote a bootloader so I can more easily install firmware.The bootloader sets the hc-05 up at 38400 and waits for a program.
-When the program successfully loads it sets abyte in ee memory.when the FLASH command is sent to the program it erases the byte
-so the bootloader will again wait for a progam. 
+When the program successfully loads it sets a byte in ee memory.when the FLASH command is sent to the program it erases the byte
+so the bootloader will again wait for a progam. You can use a standard serial terminal to send the program but you have to set a long delay (~30ms) between characters so the program has time to write. Custom coding the serial interface for the bootloader would be faster but this works for now.
 
 Hopefully I have no glitches in the bootloader or a firmware update could brick the device! 
 If so the glitch would have to be fixed and the bootloader reprogrammed.
