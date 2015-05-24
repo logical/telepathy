@@ -1,6 +1,0 @@
-#get address
-#this works with my linux system
-
-hcitool scan
-
-sudo rfcomm bind rfcomm0 device_address

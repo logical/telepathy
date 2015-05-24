@@ -13,7 +13,7 @@ It might not work but that's the plan!
 
 
 It contains.
-
+---
 
 EEGDATA:
 
@@ -26,7 +26,7 @@ I started the project in C but it was more convenient to write the data analysis
 FIRMWARE:
 
 
-The firmware is for a PIC microcontroller 16f1788.
+The firmware is for a PIC microcontroller 16f1788 and a bluetooth serial module hc-05.
 
 I have wrote a bootloader so I can more easily install firmware.The bootloader sets the hc-05 up at 38400 and waits for a program.
 When the program successfully loads it sets abyte in ee memory.when the FLASH command is sent to the program it erases the byte
@@ -38,7 +38,7 @@ If so the glitch would have to be fixed and the bootloader reprogrammed.
 
 The microcontroller first sets up the hc-05 at 230400, then wait for a request.When it receives  a request it begins sampling tha analog to digital converter and sending the samples to the hc-05.
 
-I have included a the makefiles so they should build with the make command. MPLABX should be able to load the as a makefile project bt I have not tried.
+I have included the makefiles so they should build with the make command but they may require modification . MPLABX should be able to load them as a makefile project but I have not tried.
  
 
 SCHEMATIC:
@@ -49,6 +49,15 @@ The analog amplifier portion of the circuit is based on [this dual channel fm fr
 
 I have created a kicad schematic and pcb (kicad build 2012-apr-16-27).The schematic does not have resistor and capacitor values in it yet because I may change them. The pcb is untested. In order to create a pcb you have to export to gerber, then run pcb2gcode on th gerber if needed. 
 
+SOFTWARE:
+
+The linux interface software is still very simple.In order to connect on my system I have to use these setup commands:
+
+hcitool scan
+
+sudo rfcomm bind rfcomm0 device_address
+
+Then you need to run any programs that access serial terminal as root unless you have sufficient permission.
 
 
 DISCLAIMER:
