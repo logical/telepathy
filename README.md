@@ -25,13 +25,21 @@ I started the project in C but it was more convenient to write the data analysis
 
 FIRMWARE:
 
-The firmware is for a PIC microcontroller 16f1788.The microcontroller first sets up the hc-05,
-then wait for a request.When it receives  a request it begins sampling tha analog to digital converter
-and sending the samples to the hc-05. I chose th 16f1788 but the code should be easy to modify to work
-with another PIC.
 
-I have also included a mcp4131-103 digital pot to adjust the final amplifier.
+The firmware is for a PIC microcontroller 16f1788.
 
+I have wrote a bootloader so I can more easily install firmware.The bootloader sets the hc-05 up at 38400 and waits for a program.
+When the program successfully loads it sets abyte in ee memory.when the FLASH command is sent to the program it erases the byte
+so the bootloader will again wait for a progam. 
+
+Hopefully I have no glitches in the bootloader or a firmware update could brick the device! 
+If so the glitch would have to be fixed and the bootloader reprogrammed.
+
+
+The microcontroller first sets up the hc-05 at 230400, then wait for a request.When it receives  a request it begins sampling tha analog to digital converter and sending the samples to the hc-05.
+
+I have included a the makefiles so they should build with the make command. MPLABX should be able to load the as a makefile project bt I have not tried.
+ 
 
 SCHEMATIC:
 

@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   main.c
  * Author: logical
  *
@@ -22,9 +22,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <pic16f1788.h>
+#include <xc.h>
 
 #define NO_BIT_DEFINES
-
+#define BOOTLOAD
+#ifndef BOOTLOAD
 // CONFIG1
 #pragma config FOSC = INTOSC    // Oscillator Selection (INTOSC oscillator: I/O function on CLKIN pin)
 #pragma config WDTE = OFF       // Watchdog Timer Enable (WDT disabled)
@@ -46,7 +48,7 @@
 #pragma config LPBOR = OFF      // Low Power Brown-Out Reset Enable Bit (Low power brown-out is disabled)
 #pragma config LVP = OFF        // Low-Voltage Programming Enable (High-voltage on MCLR/VPP must be used for programming)
 
-
+#endif
 
 
 /*pin defines*/
@@ -164,7 +166,7 @@ void interrupt isr(){
             rxbuffer.elems[rxbuffer.size] = rx;
 
             if(rxbuffer.elems[rxbuffer.size]==10){//linefeed
-                rxbuffer.elems[rxbuffer.size+1]=0;
+                rxbuffer.elems[rxbuffer.size+1]='\0';
                 rxbuffer.flag=1;
             }
             rxbuffer.size++;
@@ -396,7 +398,6 @@ void setHM10uart(void){
         //delay_100us(1);
     }
     rxbuffer.flag=0;
-    while(!rxbuffer.flag){}
     ERROR_PIN=0;
 
     strcpy(response,rxbuffer.elems);
@@ -432,20 +433,42 @@ void resetHC05(){
     //startup time
 
 }
+// This function tells the bootloader to overwrite this program by clearing a byte of ee memory
+// I discovered by experimentation that if functions have the same name
+// in the bootloader they might be called across boundaries.
+// So this function should not have the same name as the one in the bootloader
+// I would like to take advantage of this but I don't know how to link that way. 
+
+void EEwrite(unsigned char addr,unsigned char c){
+	EEADRL = addr;
+    CFGS=0;
+    EEPGD=0;
+	EEDATL = c;
+    GIE = 0;
+    WREN = 1;
+    EECON2 = 0x55;
+    EECON2 = 0xAA;
+    WR = 1;
+    WREN = 0;
+    GIE = 1;	
+    WREN=0;
+    while(WR);
+	}
 
 void processcommand(void){
     char *token;
     token=strtok(rxbuffer.elems," ");
-    switch(token[0]){
-        case 'r':
+    if(strcmp(rxbuffer.elems,"FLASH\n")==0){
+        TXstring("ERASING PROGRAM\n");
+        EEwrite(0, 0);
+        asm("RESET");
+    }
+    else if(strcmp((const char *)token[0],"r")==0){
             token=strtok(NULL," ");
             if(token!=NULL){
                 int value=strtol(token,NULL,10);
                 setresistor(value);
             }
-        default:
-            break;
-
     }
     rxbuffer.size=0;
     rxbuffer.flag=0;
@@ -468,7 +491,7 @@ void main(void){
     TRISC = 0b10010000; // output except for RX ,SDI and SCK
     PORTA=0b00000000;
     PORTB=0b00000000;
-    PORTC=0b00000000;
+    PORTC=0b00000001;
 
 //cmd pin is used for hc-05 only
 // hm-10 is in setup mode until it connects
@@ -490,13 +513,15 @@ void main(void){
     rxbuffer.size=0;
     rxbuffer.flag=0;
     //startup time
-    delay_100us(50000);
+    delay_100us(10000);
     setHM10uart();
-    //pullup resistor  on CMD_PIN will keep module in command mode until ready
+
     CMD_PIN=0;
+
     resetHC05();
     delay_100us(10000);
 
+    //pullup resistor  on CMD_PIN will keep module in command mode until ready
 
     SetupUART(BAUD_230400);
 
