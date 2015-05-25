@@ -17,9 +17,17 @@ It contains.
 
 EEGDATA:
 
-A software program for linux that retreives the data from the /dev/rfcomm0 bluetooth serial terminal
-and analyzes the data. 
-I started the project in C but it was more convenient to write the data analysis portion in C++. 
+A GUI software program for linux that retreives the data from the /dev/rfcomm0 bluetooth serial terminal
+and analyzes and displays the data. I started the project in C but it was more convenient to write the data analysis portion in C++. 
+
+On my system I use these commands to setup the bluetooth serial port.
+
+ 	#find the address
+ 	$hcitool scan
+	#bind the address
+	$sudo rfcomm bind rfcomm0 device_address
+
+Then you need to run any programs that access serial terminal as root unless you have sufficient permission.
 
 
 
@@ -48,16 +56,6 @@ draft.png is a rough draft of my current design which is under development and w
 The analog amplifier portion of the circuit is based on [this dual channel fm frontend from openeeg](http://openeeg.sourceforge.net/doc/hw/sceeg/DualChannelFMUnit-Sheet1.jpg) 
 
 I have created a kicad schematic and pcb (kicad build 2012-apr-16-27).The schematic does not have resistor and capacitor values in it yet because I may change them. The pcb is untested. In order to create a pcb you have to export to gerber, then run pcb2gcode on th gerber if needed. 
-
-SOFTWARE:
-
-The linux interface software is still very simple.In order to connect on my system I have to use these setup commands:
-
-hcitool scan
-
-sudo rfcomm bind rfcomm0 device_address
-
-Then you need to run any programs that access serial terminal as root unless you have sufficient permission.
 
 
 DISCLAIMER:
