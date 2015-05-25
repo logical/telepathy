@@ -90,6 +90,10 @@ CC is checksum (2s-complement of number of bytes+address+data)
 
 
 unsigned char delay_count1;
+// I discovered by experimentation that if functions have the same name
+// in the bootloader as the program they might be called across boundaries.
+// So this function should not have the same name as the one in the program
+// I would like to take advantage of this but I don't know how to link that way. 
 
 void _DELAY__100us(unsigned int count){
 /*
@@ -115,7 +119,7 @@ void _TX__String(const char *stringtosend,unsigned char len){
     unsigned char i=0;
     while(i<len){
         TXREG = stringtosend[i++];
-        while(!TXSTAbits.TRMT);
+        while(!TRMT);
     }
 }
 void _REQ__Sequence(void){
@@ -152,11 +156,10 @@ unsigned char _EE__read(unsigned char addr)
 }
 #define FLASH_SIZE 32
 
-void _FLASH__copy(unsigned short *source_addr, unsigned short size,  unsigned short dest_addr)
+void _FLASH__copy(unsigned short *source_addr, unsigned short dest_addr)
 {
 	// variable declarations
 	unsigned char index;
-    if(size>FLASH_SIZE)return;
 	
 	while(WR);	// in case of any prior EEPROM writes
 	EEPGD=1;	// select program memory
@@ -173,8 +176,10 @@ void _FLASH__copy(unsigned short *source_addr, unsigned short size,  unsigned sh
     
     for(index = 0; index < FLASH_SIZE; index++)
     {
-        EEDATH=source_addr[index];
-        EEDATA=source_addr[index] >> 8;
+        EEDATA=source_addr[index];
+        EEDATH=source_addr[index] >> 8;
+       //erase the buffer
+        source_addr[index]=0xFFFF;
 
         EEADRL=(unsigned char)(dest_addr+index);	
         EEADRH=(unsigned char)((dest_addr+index)>>8);
@@ -241,11 +246,11 @@ void _BOOT__loader(void) {
     unsigned char reclen;
     unsigned char rectype;
     unsigned char hexend = 0;
-    unsigned char idx;
-    unsigned char buffer[HEX_LINE_LEN_MAX];
-    
+    unsigned char idx=0;
     unsigned char blocks=0;
-    unsigned short block[32];
+    unsigned char message[16];    
+    unsigned char buffer[HEX_LINE_LEN_MAX];
+    unsigned short block[FLASH_SIZE];
 
     unsigned char ch;
 //cmd pin is used for hc-05 only
@@ -299,13 +304,11 @@ void _BOOT__loader(void) {
 
     ERROR_PIN=1;
 
-    while(hexend == 0)
-    {
+    while(hexend == 0){
         idx = 0;
         /* get one line of the HEX file via RS232 until we receive LF or */
         /* we reached the end of the buffer */
-        do
-        {
+        do{
              /* get one byte */
             while(!RCIF);
              ch = RCREG;
@@ -323,9 +326,8 @@ void _BOOT__loader(void) {
 
          if (_CHECK__checksum(&buffer[HEX_LEN_START], reclen) != 0)
         {
-            TXREG='x';
-            while(!TRMT);
-            return;
+             _TX__String("TRANSMIT ERROR\n",15); 
+             return;
         }
         else
         {
@@ -342,40 +344,45 @@ void _BOOT__loader(void) {
                      words
                      */
                     if(blocks==0){ 
-                        addr=WORD16(_GET__hexbyte(&buffer[HEX_ADDR_START]),_GET__hexbyte(&buffer[HEX_ADDR_START+2]))/2 ;
+                        addr = WORD16(_GET__hexbyte( &buffer[ HEX_ADDR_START ] ) , _GET__hexbyte(&buffer[ HEX_ADDR_START + 2 ] )) / 2 ;
 
                         //align the address to 32 words
-                        //fill the unused start bytes
-
-                        for ( idx = 0; idx < ( addr & 0x001F ); idx++ ){
-                             block[blocks++] = 0xFFFF;
-                         }
-                        addr &= 0xFFE0;
-
-
-                        _TX__String((unsigned char*)&addr,2);
+                        idx = (unsigned char)(addr & 0x001F);  
+                        if(idx > 0){
+                            
+                            blocks = idx;
+                            addr &= ~(unsigned short)idx;
+                         //   _TX__String("Fixing offset.\n",15);
+                        }
+                        
 
                     }
-                    for (idx=0; idx < reclen; idx+=2){
-                        block[blocks++] = WORD16(_GET__hexbyte(&buffer[HEX_DATA_START+(idx*2)]),_GET__hexbyte(&buffer[HEX_DATA_START+(idx*2)+2]));
+
+                    for (idx = 0; idx < reclen*2; idx+=4){
+                        block[ blocks++ ] = WORD16(_GET__hexbyte(&buffer[HEX_DATA_START+idx+2]),_GET__hexbyte(&buffer[HEX_DATA_START+idx]));
                     }
 
 /* Each record is 16 bytes but each write is 32 words don't write until you have 4 records */
-                    if(blocks>=31){
+                    if(blocks == FLASH_SIZE){
                 /* only program code memory */
                        
                         if (addr >= PROG_START){
 
-                                _FLASH__copy(block,32,addr);
-                                blocks=0;
+                            _FLASH__copy( block , addr ) ;
+                            _TX__String(itoa(message , addr , 16 ),3);  
+                            _TX__String("\n",1);  
 
                         }
+                        blocks = 0;
                     }
             }
             else if (rectype == HEX_EOF_REC)
             {
             /*write what's left*/
-                _FLASH__copy(block,blocks,addr);
+                if(blocks>0){
+                    _FLASH__copy( block , addr );
+                }
+                _TX__String("DONE\n",5);
                 hexend = 1;
             }
         }
