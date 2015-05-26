@@ -44,14 +44,14 @@ Hopefully I have no glitches in the bootloader or a firmware update could brick 
 If so the glitch would have to be fixed and the bootloader reprogrammed.
 
 
-The microcontroller first sets up the hc-05 at 230400, then wait for a request.When it receives  a request it begins sampling tha analog to digital converter and sending the samples to the hc-05.
+The microcontroller first sets up the hc-05 at 230400, then wait for a request.When it receives  a request it begins sampling the analog to digital converter and sending the samples to the hc-05.
 
 I have included the makefiles so they should build with the make command but they may require modification . MPLABX should be able to load them as a makefile project but I have not tried.
  
 
 SCHEMATIC:
 
-draft.png is a rough draft of my current design which is under development and will certainly change. the npn transistors ground the unselected inputs to reduce parasitics.
+draft.png is a rough draft of my current design which is under development and will certainly change. the npn transistors ground the unselected inputs to reduce crosstalk.
 
 The analog amplifier portion of the circuit is based on [this dual channel fm frontend from openeeg](http://openeeg.sourceforge.net/doc/hw/sceeg/DualChannelFMUnit-Sheet1.jpg) 
 

@@ -15,7 +15,6 @@
  *
  *
  * Created on May 7, 2015, 11:09 AM
- * adapted from code found at http://www.picprojects.net/serialbootloader/
  */
 
 #include <stdio.h>
@@ -52,18 +51,20 @@
 
 
 #define PROG_START 0x700
+
 /*
-:BBAAAATT[DDDDDDDD]CC
+ * :BBAAAATT[DDDDDDDD]CC
+ * 
+ * where
+ * : is start of line marker
+ * BB is number of data bytes on line
+ * AAAA is address in bytes
+ * TT is type. 00 means data, 01 means EOF and 04 means extended address
+ * DD is data bytes, number depends on BB value
+ * CC is checksum (2s-complement of number of bytes+address+data)
+ */
 
-where
-: is start of line marker
-BB is number of data bytes on line
-AAAA is address in bytes
-TT is type. 00 means data, 01 means EOF and 04 means extended address
-DD is data bytes, number depends on BB value
-CC is checksum (2s-complement of number of bytes+address+data)
 
-*/
 /* ------------------------------------------------------------------------- */
 /* Intel HEX file record types                                               */
 /* ------------------------------------------------------------------------- */
@@ -89,27 +90,21 @@ CC is checksum (2s-complement of number of bytes+address+data)
 
 
 
-unsigned char delay_count1;
-// I discovered by experimentation that if functions have the same name
-// in the bootloader as the program they might be called across boundaries.
-// So this function should not have the same name as the one in the program
-// I would like to take advantage of this but I don't know how to link that way. 
+unsigned char delay___count1;
+
+/*
+ * I tried to make the function names unique because they can interere if the program has 
+ * functions with the same name 
+ * 
+ */
 
 void _DELAY__100us(unsigned int count){
-/*
-; Delay = 0.0001 seconds
-; Clock frequency = 8 MHz
-
-; Actual delay = 0.0001 seconds = 200 cycles
-; Error = 0 %
-*/
-//;798 cycles
     while(count--){
         //			;196 cycles
         asm("movlw	0x41");
-        asm("movwf	_delay_count1");
+        asm("movwf	_delay___count1");
         asm("Delay_1    ");
-        asm("decfsz	_delay_count1, f");
+        asm("decfsz	_delay___count1, f");
         asm("goto	Delay_1");
     }
 
@@ -158,27 +153,30 @@ unsigned char _EE__read(unsigned char addr)
 
 void _FLASH__copy(unsigned short *source_addr, unsigned short dest_addr)
 {
-	// variable declarations
 	unsigned char index;
 	
-	while(WR);	// in case of any prior EEPROM writes
-	EEPGD=1;	// select program memory
+	while(WR);	
+	EEPGD=1;
 	CFGS=0;
 	LWLO=1;
 
-    EEADRL = (unsigned char)(dest_addr);			// LS Byte of Program Address to Erase
-    EEADRH = (unsigned char)(dest_addr>>8);		// MS Byte of Program Address to Erase
+    EEADRL = (unsigned char)(dest_addr);
+    EEADRH = (unsigned char)(dest_addr>>8);
 
-    // Start row erase
-    FREE = 1;				// Enable Row Erase operation	
-    _REQ__Sequence();     // Order row erasure
-    FREE = 0;				// Enable Row Erase operation	
+/*
+ *  Start row erase
+ */
+    FREE = 1;	
+    _REQ__Sequence();
+    FREE = 0;	
     
     for(index = 0; index < FLASH_SIZE; index++)
     {
         EEDATA=source_addr[index];
         EEDATH=source_addr[index] >> 8;
-       //erase the buffer
+/*
+ *  erase the buffer.
+ */
         source_addr[index]=0xFFFF;
 
         EEADRL=(unsigned char)(dest_addr+index);	
@@ -192,10 +190,10 @@ void _FLASH__copy(unsigned short *source_addr, unsigned short dest_addr)
 }
 
 
-/* ========================================================================= */
-/* get_hexbyte                                                               */
-/* returns byte representation of 2 ASCII characters pointed to by *hex      */
-/* ========================================================================= */
+/* 
+ * get_hexbyte                                                               
+ * returns byte representation of 2 ASCII characters pointed to by *hex      
+ */
 
 unsigned char _GET__hexbyte(unsigned char *hex)
 {
@@ -207,7 +205,6 @@ unsigned char _GET__hexbyte(unsigned char *hex)
     {
         ch = *hex;
 
-        /* convert character to integer value */
         if (ch >= 'A')
         {
             ch = ch - 'A' + 10;
@@ -222,22 +219,23 @@ unsigned char _GET__hexbyte(unsigned char *hex)
 
     return (ret);
 }
+
 unsigned char _CHECK__checksum(unsigned char *hex, unsigned char reclen)
 {
     unsigned char checksum = 0;
     unsigned char i;
 
-    // add all byte values, incl. checksum!
     for (i=0; i <= (reclen + HEX_HEADER_LEN); i++)
     {
         checksum += _GET__hexbyte(hex);
         hex += 2;
     }
 
-    // checksum is zero if checksum is correct
     return (checksum);
 }
-
+/*
+ * This is the byte in eeprom that tells the bootloader to load or not
+ */
 eeprom unsigned char mark=0;
 
 void _BOOT__loader(void) {
@@ -253,49 +251,38 @@ void _BOOT__loader(void) {
     unsigned short block[FLASH_SIZE];
 
     unsigned char ch;
-//cmd pin is used for hc-05 only
-// hm-10 is in setup mode until it connects
 /*
-
- SETUP SERIAL UART
- 8e6/(4*(51+1)) = 38461
-
-
+ *  SETUP SERIAL UART
+ *  8e6/(4*(51+1)) = 38461
+ * 
  */
 
-    TXSTAbits.SYNC=0;			// Disable Synchronous/Enable Asynchronous
-    RCSTAbits.SPEN=1;			// Enable serial port
+    TXSTAbits.SYNC=0;
+    RCSTAbits.SPEN=1;
     RCSTAbits.CREN=1;
-    RCSTAbits.RX9=0;                    // 8 bit
-    TXSTAbits.TXEN=1;			// Enable transmission mode
-    SPBRG=51;                           //38400
+    RCSTAbits.RX9=0; 
+    TXSTAbits.TXEN=1;
+    SPBRG=51;        
     BAUDCTLbits.BRG16=1;
     TXSTAbits.BRGH=1;
 
     _DELAY__100us(10000);
 
 /*
-
- SET BLUETOOTH BAUD RATE
-
+ * SET BLUETOOTH BAUD RATE to 38400bps 1 stop bit no parity
+ * 
  */
-//38400bps 1 stop bit no parity
     _TX__String("AT+UART=38400,1,0\r\n",19);
-    do{ //wait for ok
+    do{ 
         while(!RCIF);
     }while(RCREG != '\n');
 
 
-    CMD_PIN=0;//setup done
-
-/*
- 
- * RESET BLUETOOTH
-*/
+    CMD_PIN=0;
 
 
     _TX__String("AT+RESET\r\n",10);
-    do{ //wait for ok
+    do{ 
         while(!RCIF);
     }while(RCREG != '\n');
 
@@ -306,22 +293,20 @@ void _BOOT__loader(void) {
 
     while(hexend == 0){
         idx = 0;
-        /* get one line of the HEX file via RS232 until we receive LF or */
-        /* we reached the end of the buffer */
+/*
+ *  get one line of the HEX file via RS232 until we receive LF or  
+ *  we reached the end of the buffer 
+ */ 
         do{
-             /* get one byte */
             while(!RCIF);
              ch = RCREG;
-             /* save to buffer */
              buffer[idx] = ch;
-             /* increment buffer index */
              idx++;
         }
         while(ch != '\n');
 
 
 
-        /* get record length */
         reclen = _GET__hexbyte(&buffer[HEX_LEN_START]);
 
          if (_CHECK__checksum(&buffer[HEX_LEN_START], reclen) != 0)
@@ -333,26 +318,27 @@ void _BOOT__loader(void) {
         {
 
  
-            /* get record type */
             rectype = _GET__hexbyte(&buffer[HEX_TYPE_START]);
 
             if (rectype == HEX_DATA_REC){
-                    /* get address for every 32 words
-                     *
-                      The hex file is numbered by bytes
-                     While the write operation expects 32
-                     words
-                     */
+/* get address for every 32 words
+ *
+ * The hex file is numbered by bytes
+ * While the write operation expects 32
+ * words
+ */
                     if(blocks==0){ 
                         addr = WORD16(_GET__hexbyte( &buffer[ HEX_ADDR_START ] ) , _GET__hexbyte(&buffer[ HEX_ADDR_START + 2 ] )) / 2 ;
 
-                        //align the address to 32 words
+/*
+ * align the address to 32 words
+ */
                         idx = (unsigned char)(addr & 0x001F);  
                         if(idx > 0){
                             
                             blocks = idx;
                             addr &= ~(unsigned short)idx;
-                         //   _TX__String("Fixing offset.\n",15);
+                            _TX__String("Fixing offset.\n",15);
                         }
                         
 
@@ -364,8 +350,7 @@ void _BOOT__loader(void) {
 
 /* Each record is 16 bytes but each write is 32 words don't write until you have 4 records */
                     if(blocks == FLASH_SIZE){
-                /* only program code memory */
-                       
+/* only program code memory */
                         if (addr >= PROG_START){
 
                             _FLASH__copy( block , addr ) ;
@@ -378,7 +363,7 @@ void _BOOT__loader(void) {
             }
             else if (rectype == HEX_EOF_REC)
             {
-            /*write what's left*/
+/*write what's left*/
                 if(blocks>0){
                     _FLASH__copy( block , addr );
                 }
@@ -391,8 +376,9 @@ void _BOOT__loader(void) {
 
 
 
-    //set back to indicate finished
-    //eeprom_write(0, 7);
+/*
+ *  set mark variable to 7 to indicate successful upload
+ */
     _EE__write((unsigned char)&mark,7);
     ERROR_PIN=0;
     asm("RESET");
@@ -409,9 +395,9 @@ void interrupt _ISR__redirect(){
 }
 
 int main(int argc, char** argv) {
-// THESE ARE ASSUME TO BE HARDWIRED INTO THE CIRCUIT
-   //set to 8mhz
-    //OSCCONbits.SPLLEN=1;//16mhz
+/*
+ *  THESE ARE ASSUME TO BE HARDWIRED INTO THE CIRCUIT
+ */
     OSCCONbits.SCS=00;
     OSCCONbits.IRCF=0b1110;
 
@@ -425,10 +411,16 @@ int main(int argc, char** argv) {
     TRISCbits.TRISC6=0;
     TRISCbits.TRISC7=1;
 
-    ODCONCbits.ODCONC6=1;// Make pin open drain in order to connect to bluetooth uart at low voltage
+    ODCONCbits.ODCONC6=1;
     ODCONCbits.ODCONC0=1;
+
     PORTAbits.RA6=0;
     PORTCbits.RC6=0;
+/*
+ * Put HC-05 in command mode
+ * 
+ */
+
     CMD_PIN=1;
 
        unsigned char loaded = _EE__read((unsigned short)&mark);
