@@ -5,12 +5,11 @@ This poject contains a bluetooth eeg circuit based on openeeg dual channel sound
 
 GOAL
 ------
+This project is under development so it is not working. I welcome suggestions.
+
+
 The goal is to do brain computer interface experments.I want to make a wireless headband that runs
-on a battery. I will design the board with kicad using surface mount parts.
-
-It might not work but that's the plan!
-
-
+on a battery. 
 
 It contains.
 ---
@@ -26,6 +25,14 @@ On my system I use these commands to setup the bluetooth serial port.
  	$hcitool scan
 	#bind the address
 	$sudo rfcomm bind rfcomm0 device_address
+	
+For BLE
+
+	#find the adapter address
+	$hcitool dev
+	#find the device address
+	$sudo hcitool -i hci0 lescan
+	
 
 Then you need to run any programs that access serial terminal as root unless you have sufficient permission.
 
