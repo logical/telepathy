@@ -3,6 +3,7 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+
 #include <glib/gprintf.h>
 #include "cvanalyze.h"
 #include "eegdatarxtx.h"
@@ -27,7 +28,7 @@ extern "C" {
 #define XSCALE (SCOPEWIDTH/(SAMPLESIZE/2))
 #define RESISTOR 255 //this sets the resistor value that sets the final amplifier gain  
 
-#define DEFAULT_COM	"/dev/rfcomm0"
+#define DEFAULT_COM	"/dev/rfcomm1"
 #define DEFAULT_BAUD	B230400 
 
   

@@ -1,8 +1,6 @@
-update=Sat 04 Apr 2015 05:19:42 PM CDT
+update=Tue 21 Jul 2015 11:43:09 AM CDT
 version=1
-last_client=pcbnew
-[general]
-version=1
+last_client=kicad
 [eeschema]
 version=1
 LibDir=
@@ -172,3 +170,5 @@ LibName74=contrib/WireConnections-Bridges_RevA
 LibName75=contrib/WirePads_RevA
 LibName76=SOT89-3_SOT89-5_Housing_RevA_02Sep2012
 LibName77=SO18W
+[general]
+version=1

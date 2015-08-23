@@ -34,7 +34,7 @@ using namespace arma;
 
 
 
-void dodft(Col<float> in,Col<float> &out);
+void fft(Col<float> in,Col<float> &out);
 //double getPSNR ( const mat& I1, const mat& I2);
 //Scalar getMSSIM( const mat& I1, const mat& I2);
 
@@ -94,7 +94,7 @@ void compare_signals(void){
   fvec chdata(SAMPLESIZE);
   fvec resampled(SAMPLESIZE*SAMPLERATE);
   cx_fvec spectrum(SAMPLESIZE);
- fvec result(SAMPLESIZE);
+  fvec result(SAMPLESIZE);
   
 /*
  I want to draw a smooth line for the frequency components.
@@ -106,7 +106,7 @@ void compare_signals(void){
     chdata[i]=channel1[i]-ZEROSAMPLE;
   }
   
-  spectrum = fft(chdata,SAMPLESIZE);
+  spectrum = fft(chdata,SAMPLESIZE,0);
   result=abs(spectrum);
   result*=0.05;
   result=clamp(result, 0, 65535);
@@ -195,8 +195,46 @@ void compare_signals(void){
   
 }
 
+/* code from gnucap to do fft
 
-
+void fft(COMPLEX* x, int n, int inv)
+{
+  int s = (inv) ? 1 : -1;
+  int nxp, nxp2;
+  for (nxp=n;  (nxp2=nxp/2) > 0;  nxp=nxp2) {
+    double wpwr = M_TWO_PI / nxp;
+    for (int m = 0;  m < nxp2;  ++m) {
+      double argg = m * wpwr;
+      COMPLEX w(cos(argg), s*sin(argg));
+      for (int jj1 = m;  jj1+nxp-m <= n;  jj1 += nxp) {
+	int jj2 = jj1 + nxp2;
+	COMPLEX t = x[jj1] - x[jj2];
+	x[jj1] += x[jj2];
+	x[jj2] = t * w;
+      }
+    }
+  }
+  // unscramble 
+  {
+    int i, j;
+    for ( i = j = 0;  i < n-1;  ++i) {
+      if (i < j) {
+	swap(x[i],x[j]);
+      }
+      int k;
+      for (k = n/2;  k <= j;  k /= 2) {
+	j -= k;
+      }
+      j += k;
+    }
+  }
+  // fix level 
+  if (!inv) {
+    for (int i = 0;  i < n;  ++i) {
+      x[i] /= n;
+    }
+  }
+}
 
 /*
 double getPSNR(const mat& I1, const mat& I2)

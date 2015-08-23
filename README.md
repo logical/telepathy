@@ -12,7 +12,25 @@ The goal is to do brain computer interface experments.I want to make a wireless 
 on a battery. 
 
 It contains.
----
+
+STATUS
+------
+I am currently doing a complete redesign of the hardware.Here are some of the changes I'm planning.
+
+1. Split the device into 3 sections for power, amplifier and input/output.
+2. Replace the bluetooth module and pic with a bluetooth capable microcontroller.
+3. add active electrodes.
+
+ELECTRODES: 
+
+I have 2 designs for active electrodes. Active dry electrodes and active noncontact electrodes.
+The dry electrodes are based on the openeeg design. The noncontact electrodes are based on a design I found here:
+
+http://www.isn.ucsd.edu/pubs/bsn10.pdf
+
+I'm assuming it is creative commons.
+
+
 
 EEGDATA:
 

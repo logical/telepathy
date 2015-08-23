@@ -116,8 +116,8 @@ if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(timecheck))){
   
   cr=gdk_cairo_create(gtk_widget_get_window(widget));
   
-  cairo_set_source_surface (cr,background, 0, 0);
-  cairo_paint(cr);
+//  cairo_set_source_surface (cr,background, 0, 0);
+//  cairo_paint(cr);
   
   
   cairo_set_source_surface (cr,scope, 0, 0);
@@ -127,8 +127,8 @@ if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(timecheck))){
 else{
     cairo_t* cr=gdk_cairo_create(gtk_widget_get_window(widget));
   
-  cairo_set_source_surface (cr,background, 0, 0);
-  cairo_paint(cr);
+//  cairo_set_source_surface (cr,background, 0, 0);
+//  cairo_paint(cr);
   unsigned int size = (SAMPLESIZE/2)+1;
   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chan1check))){
       cairo_set_source_rgb (cr,1, 0, 0);
