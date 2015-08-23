@@ -1,7 +1,7 @@
 This is telepathy the mostly HARDWARE project not telepathy the software project
 Sorry for my lack of creativity in choosing a name.
 
-This poject contains a bluetooth eeg circuit based on openeeg dual channel sound card eeg project.
+This poject contains an EXPERIMENTAL bluetooth eeg circuit.
 
 GOAL
 ------
@@ -75,6 +75,8 @@ I have included the makefiles so they should build with the make command but the
  
 
 SCHEMATIC:
+
+I'M CHANGING THIS DESIGN.
 
 draft.png is a rough draft of my current design which is under development and will certainly change. the npn transistors ground the unselected inputs to reduce crosstalk.
 
