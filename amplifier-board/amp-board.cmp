@@ -1,65 +1,65 @@
-Cmp-Mod V01 Created by CvPcb (22-Jun-2014 BZR 4027)-stable date = Sun 31 Jan 2016 11:40:09 AM CST
+Cmp-Mod V01 Created by CvPcb (22-Jun-2014 BZR 4027)-stable date = Sun 14 Feb 2016 06:17:30 PM CST
 
 BeginCmp
 TimeStamp = /562BC967;
 Reference = C1;
-ValeurCmp = C;
+ValeurCmp = 1u;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /562BC7CE;
 Reference = C2;
-ValeurCmp = C;
+ValeurCmp = 10u;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /569FB166;
 Reference = C3;
-ValeurCmp = C;
+ValeurCmp = 10u;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /562BCDA2;
 Reference = C4;
-ValeurCmp = C;
+ValeurCmp = 1n;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /562BE592;
 Reference = C5;
-ValeurCmp = C;
+ValeurCmp = 1n;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /56A27292;
 Reference = C6;
-ValeurCmp = C;
+ValeurCmp = 100n;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /56A272CE;
 Reference = C7;
-ValeurCmp = C;
+ValeurCmp = 100n;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /56A272B0;
 Reference = C8;
-ValeurCmp = C;
+ValeurCmp = 100n;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /56A272BF;
 Reference = C9;
-ValeurCmp = C;
+ValeurCmp = 100n;
 IdModule  = SM0805;
 EndCmp
 
@@ -129,76 +129,90 @@ EndCmp
 BeginCmp
 TimeStamp = /562BC3D9;
 Reference = R1;
-ValeurCmp = R;
+ValeurCmp = 10k;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /562BC3E8;
 Reference = R2;
-ValeurCmp = R;
+ValeurCmp = 10k;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /562BC749;
 Reference = R3;
-ValeurCmp = R;
+ValeurCmp = 2.2k;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /562BC758;
 Reference = R4;
-ValeurCmp = R;
+ValeurCmp = 2.2k;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /562BE3B2;
 Reference = R5;
-ValeurCmp = R;
+ValeurCmp = 1M;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /562BC7DD;
 Reference = R6;
-ValeurCmp = R;
+ValeurCmp = 1M;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /569FB13E;
 Reference = R7;
-ValeurCmp = R;
+ValeurCmp = 10k;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /569FB12F;
 Reference = R8;
-ValeurCmp = R;
+ValeurCmp = 100k;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /562BCDB6;
 Reference = R9;
-ValeurCmp = R;
+ValeurCmp = 10k;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /56A229E2;
 Reference = R10;
-ValeurCmp = R;
+ValeurCmp = 1M;
 IdModule  = SM0805;
 EndCmp
 
 BeginCmp
 TimeStamp = /562BE583;
 Reference = R11;
+ValeurCmp = 200k;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56C118D3;
+Reference = R12;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56C118C4;
+Reference = R13;
 ValeurCmp = R;
 IdModule  = SM0805;
 EndCmp

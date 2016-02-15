@@ -3,7 +3,7 @@
   (general
     (links 16)
     (no_connects 0)
-    (area 0 0 0 0)
+    (area 11.887999 11.887999 38.033586 37.007001)
     (thickness 1.6)
     (drawings 4)
     (tracks 30)
@@ -118,7 +118,7 @@
     (add_net N-000009)
   )
 
-  (module SO8E (layer F.Cu) (tedit 4F33A5C7) (tstamp 55CF5886)
+  (module SO8E (layer F.Cu) (tedit 55D92B70) (tstamp 55CF5886)
     (at 26.924 26.162 270)
     (descr "module CMS SOJ 8 pins etroit")
     (tags "CMS SOJ")
@@ -127,7 +127,7 @@
     (fp_text reference U1 (at 0 -0.889 270) (layer F.SilkS)
       (effects (font (size 1.143 1.143) (thickness 0.1524)))
     )
-    (fp_text value TLC272 (at 0 1.016 270) (layer F.SilkS)
+    (fp_text value lmp7702 (at 0 1.016 270) (layer F.SilkS)
       (effects (font (size 0.889 0.889) (thickness 0.1524)))
     )
     (fp_line (start -2.667 1.778) (end -2.667 1.905) (layer F.SilkS) (width 0.127))

@@ -36,7 +36,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "17 jul 2015"
+Date "1 feb 2016"
 Rev ""
 Comp ""
 Comment1 ""
@@ -177,17 +177,6 @@ F 3 "" H 2400 2700 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L CONN_1 P2
-U 1 1 5592EFC9
-P 2450 1500
-F 0 "P2" H 2530 1500 40  0000 L CNN
-F 1 "CONN_1" H 2450 1555 30  0001 C CNN
-F 2 "" H 2450 1500 60  0000 C CNN
-F 3 "" H 2450 1500 60  0000 C CNN
-	1    2450 1500
-	-1   0    0    1   
-$EndComp
-$Comp
 L CONN_1 P4
 U 1 1 5592EFD8
 P 3000 1500
@@ -197,17 +186,6 @@ F 2 "" H 3000 1500 60  0000 C CNN
 F 3 "" H 3000 1500 60  0000 C CNN
 	1    3000 1500
 	1    0    0    -1  
-$EndComp
-$Comp
-L CONN_1 P1
-U 1 1 5592EFE7
-P 2450 1250
-F 0 "P1" H 2530 1250 40  0000 L CNN
-F 1 "CONN_1" H 2450 1305 30  0001 C CNN
-F 2 "" H 2450 1250 60  0000 C CNN
-F 3 "" H 2450 1250 60  0000 C CNN
-	1    2450 1250
-	-1   0    0    -1  
 $EndComp
 $Comp
 L CONN_1 P3
@@ -247,18 +225,11 @@ Wire Wire Line
 Wire Wire Line
 	3500 2850 3500 3050
 Wire Wire Line
-	3100 2550 3100 3250
-Wire Wire Line
-	3100 3250 4100 3250
-Wire Wire Line
-	4100 2450 4100 3400
-Wire Wire Line
 	2050 2350 2050 3050
 Wire Wire Line
 	2050 3050 1050 3050
 Wire Wire Line
 	1050 3050 1050 2450
-Connection ~ 4100 3250
 Wire Wire Line
 	4100 3900 4100 4050
 Wire Wire Line
@@ -273,20 +244,7 @@ Wire Wire Line
 Wire Wire Line
 	3450 4000 2900 4000
 Wire Wire Line
-	2900 4000 2900 2350
-Wire Wire Line
 	2700 2350 3100 2350
-Wire Wire Line
-	2600 1250 2850 1250
-Wire Wire Line
-	2600 1500 2850 1500
-Wire Wire Line
-	2700 1250 2700 2350
-Connection ~ 2700 1500
-Connection ~ 2700 1250
-Connection ~ 2900 2350
-Wire Wire Line
-	4100 2450 4300 2450
 Wire Wire Line
 	5050 2950 4850 2950
 Wire Wire Line
@@ -330,4 +288,42 @@ F 3 "" H 5200 2950 60  0000 C CNN
 $EndComp
 Wire Wire Line
 	4800 2450 5050 2450
+Connection ~ 2700 1250
+Connection ~ 2700 1500
+Wire Wire Line
+	2700 1250 2700 2350
+Wire Wire Line
+	2600 1500 2850 1500
+Wire Wire Line
+	2600 1250 2850 1250
+$Comp
+L CONN_1 P1
+U 1 1 5592EFE7
+P 2450 1250
+F 0 "P1" H 2530 1250 40  0000 L CNN
+F 1 "CONN_1" H 2450 1305 30  0001 C CNN
+F 2 "" H 2450 1250 60  0000 C CNN
+F 3 "" H 2450 1250 60  0000 C CNN
+	1    2450 1250
+	-1   0    0    -1  
+$EndComp
+$Comp
+L CONN_1 P2
+U 1 1 5592EFC9
+P 2450 1500
+F 0 "P2" H 2530 1500 40  0000 L CNN
+F 1 "CONN_1" H 2450 1555 30  0001 C CNN
+F 2 "" H 2450 1500 60  0000 C CNN
+F 3 "" H 2450 1500 60  0000 C CNN
+	1    2450 1500
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	2900 4000 2900 2550
+Wire Wire Line
+	2900 2550 3100 2550
+Wire Wire Line
+	4100 3400 4100 2450
+Wire Wire Line
+	4100 2450 4300 2450
 $EndSCHEMATC
