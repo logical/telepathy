@@ -1,7 +1,13 @@
+THIS PROJECT IS DISCONTINUED FOR NOW.
+
+The research is proving more difficult than I have hoped and there are alternatives available.
+
+
+
 This is telepathy the mostly HARDWARE project not telepathy the software project
 Sorry for my lack of creativity in choosing a name.
 
-This poject contains an EXPERIMENTAL bluetooth eeg circuit.
+This poject contains an EXPERIMENTAL wireless eeg circuit.
 
 GOAL
 ------
@@ -15,11 +21,14 @@ It contains.
 
 STATUS
 ------
-I am currently doing a complete redesign of the hardware.Here are some of the changes I'm planning.
+I made one pcb but it didn't work. I'm still interested in the project so I am currently doing 
+a complete redesign of the hardware. I will be etching the boards myself they will be single sided SMT 
+and divided in sections.Here are some of the changes I'm planning. 
 
-1. Split the device into 3 sections for power, amplifier and input/output.
-2. Replace the bluetooth module and pic with a bluetooth capable microcontroller.
-3. add active electrodes.
+1. Split the device into sections for power, amplifier and input/output.
+2. Replace the wireless module and pic with a wireless capable microcontroller. (telepathy with esp8266?)
+3. The whole design will be based on active electrodes.
+
 
 ELECTRODES: 
 
@@ -30,6 +39,11 @@ http://www.isn.ucsd.edu/pubs/bsn10.pdf
 
 I'm assuming it is creative commons.
 
+AMPLIFIER BOARD:
+
+The amplifier board is under testing I plan to use one filter for aliasing and filter the rest in software. None
+ of the resistor and capacitor values are decided yet.  
+I have the source voltage at 3.3v from a cell phone battery. So far I can pick up a heartbeat .
 
 
 EEGDATA:
